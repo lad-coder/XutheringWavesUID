@@ -373,7 +373,9 @@
                     {% for boss in bosses %}
                     <div class="boss-card">
                         <div class="boss-header">
+                            {% if boss.icon %}
                             <img src="{{ boss.icon }}" class="boss-icon">
+                            {% endif %}
                             <div class="boss-info">
                                 <div class="boss-name">{{ boss.name }}</div>
                                 <div class="boss-tags">

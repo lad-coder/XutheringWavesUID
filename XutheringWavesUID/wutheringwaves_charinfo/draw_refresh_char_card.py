@@ -314,7 +314,7 @@ async def draw_refresh_char_detail_img(
 
     for char_rank in map_unchanged:
         pic = await draw_pic(char_rank, False)  # type: ignore
-        img.alpha_composite(pic, (card_margin + 15 + card_spacing * (rIndex % cols), 470 + (rIndex // cols) * 330))
+        img.alpha_composite(pic, (card_margin + card_spacing * (rIndex % cols), 470 + (rIndex // cols) * 330))
         rIndex += 1
 
         if len(map_update) == 0 and rIndex <= 5:
