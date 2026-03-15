@@ -682,8 +682,11 @@ async def draw_char_detail_img(
         temp = copy.deepcopy(role_detail)
         try:
             role_detail, change_command = await change_role_detail(
-                uid, ck, role_detail, enemy_detail, change_list_regex
+                uid, ck, role_detail, enemy_detail, change_list_regex,
+                user_id=str(user_id), bot_id=ev.bot_id,
             )
+            if change_command and change_command.startswith("[鸣潮]"):
+                return change_command
         except Exception as e:
             logger.exception("角色数据转换错误", e)
             role_detail = temp
