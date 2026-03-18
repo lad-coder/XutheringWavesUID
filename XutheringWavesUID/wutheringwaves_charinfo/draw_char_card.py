@@ -64,6 +64,7 @@ from ..utils.calculate import (
     get_total_score_bg,
 )
 from ..utils.fonts.waves_fonts import (
+    draw_text_with_fallback,
     waves_font_12,
     waves_font_16,
     waves_font_18,
@@ -262,13 +263,13 @@ async def ph_card_draw(
                 sh_temp.alpha_composite(phantom_icon, dest=(20, 20))
                 phantomName = t(_phantom.phantomProp.name, locale).replace("·", " ").replace("（", " ").replace("）", "")
                 short_name = phantomName if locale else get_short_name(_phantom.phantomProp.phantomId, phantomName)
-                sh_temp_draw.text((130, 40), f"{short_name}", SPECIAL_GOLD, waves_font_28, "lm")
+                draw_text_with_fallback(sh_temp_draw, (130, 40), f"{short_name}", SPECIAL_GOLD, waves_font_28, "lm")
 
                 # 声骸等级背景
                 ph_level_img = Image.new("RGBA", (84, 30), (255, 255, 255, 0))
                 ph_level_img_draw = ImageDraw.Draw(ph_level_img)
                 ph_level_img_draw.rounded_rectangle([0, 0, 84, 30], radius=8, fill=(0, 0, 0, int(0.8 * 255)))
-                ph_level_img_draw.text((8, 13), f"Lv.{_phantom.level}", "white", waves_font_24, "lm")
+                draw_text_with_fallback(ph_level_img_draw, (8, 13), f"Lv.{_phantom.level}", "white", waves_font_24, "lm")
                 sh_temp.alpha_composite(ph_level_img, (128, 58))
 
                 # 声骸分数背景
@@ -276,7 +277,7 @@ async def ph_card_draw(
                 ph_score_img = Image.new("RGBA", (_score_w, 30), (255, 255, 255, 0))
                 ph_score_img_draw = ImageDraw.Draw(ph_score_img)
                 ph_score_img_draw.rounded_rectangle([0, 0, _score_w, 30], radius=8, fill=(186, 55, 42, int(0.8 * 255)))
-                ph_score_img_draw.text((_score_w // 2, 13), f"{_score}{t('分', locale)}", "white", waves_font_24, "mm")
+                draw_text_with_fallback(ph_score_img_draw, (_score_w // 2, 13), f"{_score}{t('分', locale)}", "white", waves_font_24, "mm")
                 sh_temp.alpha_composite(ph_score_img, (223, 58))
 
                 for index in range(0, _phantom.cost):
@@ -297,14 +298,14 @@ async def ph_card_draw(
                             _prop.attributeName, _prop.attributeValue, calc.calc_temp
                         )
                     _prop_display = t(_prop.attributeName, locale, partial=True)
-                    sh_temp_draw.text(
+                    draw_text_with_fallback(sh_temp_draw, 
                         (60, 187 + index * oset),
-                        f"{_prop_display[:12 if locale else 6]}",
+                        f"{_prop_display[:12 if locale == 'en' else 6]}",
                         name_color,
                         waves_font_24,
                         "lm",
                     )
-                    sh_temp_draw.text(
+                    draw_text_with_fallback(sh_temp_draw, 
                         (343, 187 + index * oset),
                         f"{_prop.attributeValue}",
                         num_color,
@@ -330,16 +331,16 @@ async def ph_card_draw(
             score_temp.alpha_composite(sh_score_c)
             score_temp_draw = ImageDraw.Draw(score_temp)
 
-            score_temp_draw.text((180, 260), t("声骸评级", locale), GREY, waves_font_30 if locale else waves_font_40, "mm")
-            score_temp_draw.text((180, 380), f"{phantom_score:.2f}分", "white", waves_font_40, "mm")
-            score_temp_draw.text((180, 440), t("声骸评分", locale), GREY, waves_font_30 if locale else waves_font_40, "mm")
+            draw_text_with_fallback(score_temp_draw, (180, 260), t("声骸评级", locale), GREY, waves_font_30 if locale else waves_font_40, "mm")
+            draw_text_with_fallback(score_temp_draw, (180, 380), f"{phantom_score:.2f}分", "white", waves_font_40, "mm")
+            draw_text_with_fallback(score_temp_draw, (180, 440), t("声骸评分", locale), GREY, waves_font_30 if locale else waves_font_40, "mm")
         else:
             abs_bg = Image.open(TEXT_PATH / "abs.png")
             score_temp = Image.new("RGBA", abs_bg.size)
             score_temp.alpha_composite(abs_bg)
             score_temp_draw = ImageDraw.Draw(score_temp)
-            score_temp_draw.text((180, 130), t("暂无", locale), "white", waves_font_40, "mm")
-            score_temp_draw.text((180, 380), f"- {t('分', locale)}", "white", waves_font_40, "mm")
+            draw_text_with_fallback(score_temp_draw, (180, 130), t("暂无", locale), "white", waves_font_40, "mm")
+            draw_text_with_fallback(score_temp_draw, (180, 380), f"- {t('分', locale)}", "white", waves_font_40, "mm")
 
         if is_draw:
             phantom_temp.alpha_composite(score_temp, dest=(30, 120 + ph_sum_value))
@@ -363,22 +364,22 @@ async def ph_card_draw(
                 ph_bg.alpha_composite(prop_img, (20, 32))
                 ph_bg_draw = ImageDraw.Draw(ph_bg)
 
-                ph_bg_draw.text((70, 50), f"{name[:12 if locale else 6]}", name_color, waves_font_24, "lm")
-                ph_bg_draw.text((343, 50), f"{value}", name_color, waves_font_24, "rm")
+                draw_text_with_fallback(ph_bg_draw, (70, 50), f"{name[:12 if locale == 'en' else 6]}", name_color, waves_font_24, "lm")
+                draw_text_with_fallback(ph_bg_draw, (343, 50), f"{value}", name_color, waves_font_24, "rm")
 
                 phantom_temp.alpha_composite(ph_bg, (40 + mi * 370, 100 + ni * 50))
 
         ph_tips = ph_1.copy()
         ph_tips_draw = ImageDraw.Draw(ph_tips)
 
-        ph_tips_draw.text((20, 50), t("[提示]评分模板", locale), "white", waves_font_24, "lm")
-        ph_tips_draw.text((350, 50), t(calc.calc_temp['name'], locale, partial=True), (255, 255, 0), waves_font_24, "rm")
+        draw_text_with_fallback(ph_tips_draw, (20, 50), t("[提示]评分模板", locale), "white", waves_font_24, "lm")
+        draw_text_with_fallback(ph_tips_draw, (350, 50), t(calc.calc_temp['name'], locale, partial=True), (255, 255, 0), waves_font_24, "rm")
         # phantom_temp.alpha_composite(ph_tips, (40 + 2 * 370, 100 + 4 * 50))
         phantom_temp.alpha_composite(ph_tips, (40 + 2 * 370, 45))
 
         if change_command:
             phantom_temp_text = ImageDraw.Draw(phantom_temp)
-            phantom_temp_text.text((50, 90), f"{change_command}", SPECIAL_GOLD, waves_font_18, "lm")
+            draw_text_with_fallback(phantom_temp_text, (50, 90), f"{change_command}", SPECIAL_GOLD, waves_font_18, "lm")
 
     # img.paste(phantom_temp, (0, 1320 + jineng_len), phantom_temp)
     return calc, phantom_temp, phantom_score
@@ -484,19 +485,19 @@ async def draw_fixed_img(img, avatar, account_info, role_detail, locale=""):
 
     base_info_bg = Image.open(TEXT_PATH / "base_info_bg.png")
     base_info_draw = ImageDraw.Draw(base_info_bg)
-    base_info_draw.text((275, 120), f"{account_info.name[:7]}", "white", waves_font_30, "lm")
-    base_info_draw.text((226, 173), f"{t('特征码:', locale)}  {account_info.id}", GOLD, waves_font_25, "lm")
+    draw_text_with_fallback(base_info_draw, (275, 120), f"{account_info.name[:7]}", "white", waves_font_30, "lm")
+    draw_text_with_fallback(base_info_draw, (226, 173), f"{t('特征码:', locale)}  {account_info.id}", GOLD, waves_font_25, "lm")
     img.paste(base_info_bg, (35, -30), base_info_bg)
 
     if account_info.is_full:
         title_bar = Image.open(TEXT_PATH / "title_bar.png")
         title_bar_draw = ImageDraw.Draw(title_bar)
         _level_font = waves_font_20 if locale else waves_font_26
-        title_bar_draw.text((510, 125), t("联觉等级", locale), GREY, _level_font, "mm")
-        title_bar_draw.text((510, 78), f"Lv.{account_info.level}", "white", waves_font_42, "mm")
+        draw_text_with_fallback(title_bar_draw, (510, 125), t("联觉等级", locale), GREY, _level_font, "mm")
+        draw_text_with_fallback(title_bar_draw, (510, 78), f"Lv.{account_info.level}", "white", waves_font_42, "mm")
 
-        title_bar_draw.text((660, 125), t("索拉等阶", locale), GREY, _level_font, "mm")
-        title_bar_draw.text((660, 78), f"Lv.{account_info.worldLevel}", "white", waves_font_42, "mm")
+        draw_text_with_fallback(title_bar_draw, (660, 125), t("索拉等阶", locale), GREY, _level_font, "mm")
+        draw_text_with_fallback(title_bar_draw, (660, 78), f"Lv.{account_info.worldLevel}", "white", waves_font_42, "mm")
 
         logo_img = get_small_logo(2)
         title_bar.alpha_composite(logo_img, dest=(780, 65))
@@ -722,24 +723,24 @@ async def draw_char_detail_img(
 
         damage_title_bg = damage_bar1.copy()
         damage_title_bg_draw = ImageDraw.Draw(damage_title_bg)
-        damage_title_bg_draw.text((400, 50), t("伤害类型", locale), SPECIAL_GOLD, waves_font_24, "rm")
-        damage_title_bg_draw.text((700, 50), t("暴击伤害", locale), SPECIAL_GOLD, waves_font_24, "mm")
-        damage_title_bg_draw.text((1000, 50), t("期望伤害", locale), SPECIAL_GOLD, waves_font_24, "mm")
+        draw_text_with_fallback(damage_title_bg_draw, (400, 50), t("伤害类型", locale), SPECIAL_GOLD, waves_font_24, "rm")
+        draw_text_with_fallback(damage_title_bg_draw, (700, 50), t("暴击伤害", locale), SPECIAL_GOLD, waves_font_24, "mm")
+        draw_text_with_fallback(damage_title_bg_draw, (1000, 50), t("期望伤害", locale), SPECIAL_GOLD, waves_font_24, "mm")
         damage_calc_img.alpha_composite(damage_title_bg, dest=(0, 10))
 
         damage_bar = damage_bar2.copy()
         damage_bar_draw = ImageDraw.Draw(damage_bar)
-        damage_bar_draw.text((400, 50), t(damage_title, locale, partial=True), "white", waves_font_24, "rm")
+        draw_text_with_fallback(damage_bar_draw, (400, 50), t(damage_title, locale, partial=True), "white", waves_font_24, "rm")
         if crit_damage and expected_damage:
-            damage_bar_draw.text((700, 50), f"{crit_damage}", "white", waves_font_24, "mm")
-            damage_bar_draw.text((1000, 50), f"{expected_damage}", "white", waves_font_24, "mm")
+            draw_text_with_fallback(damage_bar_draw, (700, 50), f"{crit_damage}", "white", waves_font_24, "mm")
+            draw_text_with_fallback(damage_bar_draw, (1000, 50), f"{expected_damage}", "white", waves_font_24, "mm")
         else:
-            damage_bar_draw.text((850, 50), f"{expected_damage}", "white", waves_font_24, "mm")
+            draw_text_with_fallback(damage_bar_draw, (850, 50), f"{expected_damage}", "white", waves_font_24, "mm")
         damage_calc_img.alpha_composite(damage_bar, dest=(0, 70))
 
         damage_title_bg = damage_bar1.copy()
         damage_title_bg_draw = ImageDraw.Draw(damage_title_bg)
-        damage_title_bg_draw.text((600, 50), t("buff列表", locale), "white", waves_font_24, "mm")
+        draw_text_with_fallback(damage_title_bg_draw, (600, 50), t("buff列表", locale), "white", waves_font_24, "mm")
         damage_calc_img.alpha_composite(damage_title_bg, dest=(0, 130))
 
         for dindex, effect in enumerate(damageAttributeTemp.effect):
@@ -747,8 +748,8 @@ async def draw_char_detail_img(
             buff_value = effect.element_value
             damage_bar = damage_bar2.copy() if dindex % 2 == 0 else damage_bar1.copy()
             damage_bar_draw = ImageDraw.Draw(damage_bar)
-            damage_bar_draw.text((400, 50), t(buff_name, locale, partial=True), "white", waves_font_24, "rm")
-            damage_bar_draw.text((800, 50), f"{buff_value}", "white", waves_font_24, "mm")
+            draw_text_with_fallback(damage_bar_draw, (400, 50), t(buff_name, locale, partial=True), "white", waves_font_24, "rm")
+            draw_text_with_fallback(damage_bar_draw, (800, 50), f"{buff_value}", "white", waves_font_24, "mm")
             damage_calc_img.alpha_composite(damage_bar, dest=(0, 10 + (dindex + 3) * 60))
 
         dd_len += damage_calc_img.size[1]
@@ -813,15 +814,15 @@ async def draw_char_detail_img(
     weapon_icon_bg.paste(weapon_icon, (10, 20), weapon_icon)
 
     weapon_bg_temp_draw = ImageDraw.Draw(weapon_bg_temp)
-    weapon_bg_temp_draw.text((200, 30), t(weaponData.weapon.weaponName, locale), SPECIAL_GOLD, waves_font_40, "lm")
-    weapon_bg_temp_draw.text((203, 75), f"Lv.{weaponData.level}/90", "white", waves_font_30, "lm")
+    draw_text_with_fallback(weapon_bg_temp_draw, (200, 30), t(weaponData.weapon.weaponName, locale), SPECIAL_GOLD, waves_font_40, "lm")
+    draw_text_with_fallback(weapon_bg_temp_draw, (203, 75), f"Lv.{weaponData.level}/90", "white", waves_font_30, "lm")
 
     _x = 220 + 43 * len(weaponData.weapon.weaponName)
     _y = 37
     wrc_fill = WEAPON_RESONLEVEL_COLOR[weaponData.resonLevel] + (int(0.8 * 255),)  # type: ignore
     weapon_bg_temp_draw.rounded_rectangle([_x - 15, _y - 15, _x + 50, _y + 15], radius=7, fill=wrc_fill)
 
-    weapon_bg_temp_draw.text((_x, _y), f"{t('精', locale)}{weaponData.resonLevel}", "white", waves_font_24, "lm")
+    draw_text_with_fallback(weapon_bg_temp_draw, (_x, _y), f"{t('精', locale)}{weaponData.resonLevel}", "white", waves_font_24, "lm")
 
     weapon_breach = get_breach(weaponData.breach, weaponData.level)
     for i in range(0, weapon_breach):  # type: ignore
@@ -846,18 +847,18 @@ async def draw_char_detail_img(
     _ws0_name = t(weapon_detail.stats[0]['name'], locale, partial=True)
     _ws1_name = t(weapon_detail.stats[1]['name'], locale, partial=True)
     if skill_branch:
-        weapon_bg_temp_draw.text((115, 207), _ws0_name, "white", waves_font_30, "lm")
-        weapon_bg_temp_draw.text((115, 257), _ws1_name, "white", waves_font_30, "lm")
-        weapon_bg_temp_draw.text((115 + 300, 207), f"{weapon_detail.stats[0]['value']}", "white", waves_font_30, "rm")
-        weapon_bg_temp_draw.text((115 + 300, 257), f"{weapon_detail.stats[1]['value']}", "white", waves_font_30, "rm")
+        draw_text_with_fallback(weapon_bg_temp_draw, (115, 207), _ws0_name, "white", waves_font_30, "lm")
+        draw_text_with_fallback(weapon_bg_temp_draw, (115, 257), _ws1_name, "white", waves_font_30, "lm")
+        draw_text_with_fallback(weapon_bg_temp_draw, (115 + 300, 207), f"{weapon_detail.stats[0]['value']}", "white", waves_font_30, "rm")
+        draw_text_with_fallback(weapon_bg_temp_draw, (115 + 300, 257), f"{weapon_detail.stats[1]['value']}", "white", waves_font_30, "rm")
         active_skill = await get_attribute_skill(skill_branch.branchName)
         active_skill = active_skill.resize((100, 100))
         weapon_bg_temp.alpha_composite(active_skill, dest=(500-50, 232-50))
     else:
-        weapon_bg_temp_draw.text((130, 207), _ws0_name, "white", waves_font_30, "lm")
-        weapon_bg_temp_draw.text((130, 257), _ws1_name, "white", waves_font_30, "lm")
-        weapon_bg_temp_draw.text((500, 207), f"{weapon_detail.stats[0]['value']}", "white", waves_font_30, "rm")
-        weapon_bg_temp_draw.text((500, 257), f"{weapon_detail.stats[1]['value']}", "white", waves_font_30, "rm")
+        draw_text_with_fallback(weapon_bg_temp_draw, (130, 207), _ws0_name, "white", waves_font_30, "lm")
+        draw_text_with_fallback(weapon_bg_temp_draw, (130, 257), _ws1_name, "white", waves_font_30, "lm")
+        draw_text_with_fallback(weapon_bg_temp_draw, (500, 207), f"{weapon_detail.stats[0]['value']}", "white", waves_font_30, "rm")
+        draw_text_with_fallback(weapon_bg_temp_draw, (500, 257), f"{weapon_detail.stats[1]['value']}", "white", waves_font_30, "rm")
 
     right_image_temp.alpha_composite(weapon_bg_temp, dest=(0, 650))
 
@@ -884,11 +885,11 @@ async def draw_char_detail_img(
             if len(name) > 14:
                 mid = len(name) // 2
                 name = name[:mid] + "\n" + name[mid:]
-            mz_bg_temp_draw.text((147, 228), name, "white", _chain_font, "mm")
+            draw_text_with_fallback(mz_bg_temp_draw, (147, 228), name, "white", _chain_font, "mm")
         elif len(name) >= 8:
-            mz_bg_temp_draw.text((147, 230), f"{name}", "white", waves_font_16, "mm")
+            draw_text_with_fallback(mz_bg_temp_draw, (147, 230), f"{name}", "white", waves_font_16, "mm")
         else:
-            mz_bg_temp_draw.text((147, 230), f"{name}", "white", waves_font_20, "mm")
+            draw_text_with_fallback(mz_bg_temp_draw, (147, 230), f"{name}", "white", waves_font_20, "mm")
 
         if not _mz.unlocked:
             mz_bg_temp = ImageEnhance.Brightness(mz_bg_temp).enhance(0.3)
@@ -901,9 +902,9 @@ async def draw_char_detail_img(
         calc.damageAttribute = calc.card_sort_map_to_attribute(calc.role_card)
         damage_title_bg = damage_bar1.copy()
         damage_title_bg_draw = ImageDraw.Draw(damage_title_bg)
-        damage_title_bg_draw.text((400, 50), t("伤害类型", locale), SPECIAL_GOLD, waves_font_24, "rm")
-        damage_title_bg_draw.text((700, 50), t("暴击伤害", locale), SPECIAL_GOLD, waves_font_24, "mm")
-        damage_title_bg_draw.text((1000, 50), t("期望伤害", locale), SPECIAL_GOLD, waves_font_24, "mm")
+        draw_text_with_fallback(damage_title_bg_draw, (400, 50), t("伤害类型", locale), SPECIAL_GOLD, waves_font_24, "rm")
+        draw_text_with_fallback(damage_title_bg_draw, (700, 50), t("暴击伤害", locale), SPECIAL_GOLD, waves_font_24, "mm")
+        draw_text_with_fallback(damage_title_bg_draw, (1000, 50), t("期望伤害", locale), SPECIAL_GOLD, waves_font_24, "mm")
         img.alpha_composite(damage_title_bg, dest=(0, 2600 + ph_sum_value + jineng_len))
         for dindex, damage_temp in enumerate(damageDetail):
             damage_title = damage_temp["title"]
@@ -915,12 +916,12 @@ async def draw_char_detail_img(
 
             damage_bar = damage_bar2.copy() if dindex % 2 == 0 else damage_bar1.copy()
             damage_bar_draw = ImageDraw.Draw(damage_bar)
-            damage_bar_draw.text((400, 50), t(damage_title, locale, partial=True), "white", waves_font_24, "rm")
+            draw_text_with_fallback(damage_bar_draw, (400, 50), t(damage_title, locale, partial=True), "white", waves_font_24, "rm")
             if crit_damage and expected_damage:
-                damage_bar_draw.text((700, 50), f"{crit_damage}", "white", waves_font_24, "mm")
-                damage_bar_draw.text((1000, 50), f"{expected_damage}", "white", waves_font_24, "mm")
+                draw_text_with_fallback(damage_bar_draw, (700, 50), f"{crit_damage}", "white", waves_font_24, "mm")
+                draw_text_with_fallback(damage_bar_draw, (1000, 50), f"{expected_damage}", "white", waves_font_24, "mm")
             else:
-                damage_bar_draw.text((850, 50), f"{expected_damage}", "white", waves_font_24, "mm")
+                draw_text_with_fallback(damage_bar_draw, (850, 50), f"{expected_damage}", "white", waves_font_24, "mm")
             img.alpha_composite(
                 damage_bar,
                 dest=(0, 2600 + ph_sum_value + jineng_len + (dindex + 1) * 60),
@@ -931,14 +932,14 @@ async def draw_char_detail_img(
             damage_bar = damage_bar2.copy() if dindex % 2 == 0 else damage_bar1.copy()
             damage_bar_draw = ImageDraw.Draw(damage_bar)
             damage_bar_draw = ImageDraw.Draw(damage_bar)
-            damage_bar_draw.text(
+            draw_text_with_fallback(damage_bar_draw, 
                 (400, 50),
                 t("评分排名", locale) if oneRank.data[0].rank > 0 else t("估计评分排名", locale),
                 "white",
                 waves_font_24,
                 "rm",
             )
-            damage_bar_draw.text(
+            draw_text_with_fallback(damage_bar_draw, 
                 (850, 50),
                 f"{oneRank.data[0].rank}" if oneRank.data[0].rank > 0 else oneRank.data[0].inter_rank,
                 SPECIAL_GOLD,
@@ -956,14 +957,14 @@ async def draw_char_detail_img(
                 damage_bar = damage_bar2.copy() if dindex % 2 == 0 else damage_bar1.copy()
                 damage_bar_draw = ImageDraw.Draw(damage_bar)
                 damage_bar_draw = ImageDraw.Draw(damage_bar)
-                damage_bar_draw.text(
+                draw_text_with_fallback(damage_bar_draw, 
                     (400, 50),
                     t("伤害排名", locale) if oneRank.data[1].rank > 0 else t("估计伤害排名", locale),
                     "white",
                     waves_font_24,
                     "rm",
                 )
-                damage_bar_draw.text(
+                draw_text_with_fallback(damage_bar_draw, 
                     (850, 50),
                     f"{oneRank.data[1].rank}" if oneRank.data[1].rank > 0 else oneRank.data[1].inter_rank,
                     SPECIAL_GOLD,
@@ -1000,12 +1001,12 @@ async def draw_char_detail_img(
 
         if index < 4:
             sh_bg.alpha_composite(prop_img, (60 + 251 * (index % 2), 40 + (index // 2) * 55))
-            sh_bg_draw.text((115 + 251 * (index % 2), 58 + (index // 2) * 55), f"{name}", name_color, waves_font_24, "lm")
-            sh_bg_draw.text((530 - 251 * ((index + 1) % 2), 58 + (index // 2) * 55), f"{value}", name_color, waves_font_24, "rm")
+            draw_text_with_fallback(sh_bg_draw, (115 + 251 * (index % 2), 58 + (index // 2) * 55), f"{name}", name_color, waves_font_24, "lm")
+            draw_text_with_fallback(sh_bg_draw, (530 - 251 * ((index + 1) % 2), 58 + (index // 2) * 55), f"{value}", name_color, waves_font_24, "rm")
         else:
             sh_bg.alpha_composite(prop_img, (60, 40 + (index - 2) * 55))
-            sh_bg_draw.text((115, 58 + (index - 2) * 55), f"{name}", name_color, waves_font_24, "lm")
-            sh_bg_draw.text((530, 58 + (index - 2) * 55), f"{value}", name_color, waves_font_24, "rm")
+            draw_text_with_fallback(sh_bg_draw, (115, 58 + (index - 2) * 55), f"{name}", name_color, waves_font_24, "lm")
+            draw_text_with_fallback(sh_bg_draw, (530, 58 + (index - 2) * 55), f"{value}", name_color, waves_font_24, "rm")
 
     right_image_temp.alpha_composite(sh_bg, dest=(0, 80))
     img.paste(right_image_temp, (570, 200), right_image_temp)
@@ -1026,8 +1027,8 @@ async def draw_char_detail_img(
 
         skill_bg_draw = ImageDraw.Draw(skill_bg)
         _skill_font = waves_font_18 if locale else waves_font_25
-        skill_bg_draw.text((150, 83), t(_skill.skill.type, locale), "white", _skill_font, "lm")
-        skill_bg_draw.text((150, 113), f"Lv.{_skill.level}", "white", waves_font_25, "lm")
+        draw_text_with_fallback(skill_bg_draw, (150, 83), t(_skill.skill.type, locale), "white", _skill_font, "lm")
+        draw_text_with_fallback(skill_bg_draw, (150, 113), f"Lv.{_skill.level}", "white", waves_font_25, "lm")
 
         skill_bg_temp = Image.new("RGBA", skill_bg.size)
         skill_bg_temp = Image.alpha_composite(skill_bg_temp, skill_bg)
@@ -1158,13 +1159,13 @@ async def draw_char_score_img(ev: Event, uid: str, char: str, user_id: str, wave
                 sh_temp.alpha_composite(phantom_icon, dest=(20, 20))
                 phantomName = t(_phantom.phantomProp.name, locale).replace("·", " ").replace("（", " ").replace("）", "")
                 short_name = phantomName if locale else get_short_name(_phantom.phantomProp.phantomId, phantomName)
-                sh_temp_draw.text((130, 40), f"{short_name}", SPECIAL_GOLD, waves_font_28, "lm")
+                draw_text_with_fallback(sh_temp_draw, (130, 40), f"{short_name}", SPECIAL_GOLD, waves_font_28, "lm")
 
                 # 声骸等级背景
                 ph_level_img = Image.new("RGBA", (84, 30), (255, 255, 255, 0))
                 ph_level_img_draw = ImageDraw.Draw(ph_level_img)
                 ph_level_img_draw.rounded_rectangle([0, 0, 84, 30], radius=8, fill=(0, 0, 0, int(0.8 * 255)))
-                ph_level_img_draw.text((8, 13), f"Lv.{_phantom.level}", "white", waves_font_24, "lm")
+                draw_text_with_fallback(ph_level_img_draw, (8, 13), f"Lv.{_phantom.level}", "white", waves_font_24, "lm")
                 sh_temp.alpha_composite(ph_level_img, (128, 58))
 
                 # 声骸分数背景
@@ -1172,7 +1173,7 @@ async def draw_char_score_img(ev: Event, uid: str, char: str, user_id: str, wave
                 ph_score_img = Image.new("RGBA", (_score_w, 30), (255, 255, 255, 0))
                 ph_score_img_draw = ImageDraw.Draw(ph_score_img)
                 ph_score_img_draw.rounded_rectangle([0, 0, _score_w, 30], radius=8, fill=(186, 55, 42, int(0.8 * 255)))
-                ph_score_img_draw.text((_score_w // 2, 13), f"{_score}{t('分', locale)}", "white", waves_font_24, "mm")
+                draw_text_with_fallback(ph_score_img_draw, (_score_w // 2, 13), f"{_score}{t('分', locale)}", "white", waves_font_24, "mm")
                 sh_temp.alpha_composite(ph_score_img, (228, 58))
 
                 for index in range(0, _phantom.cost):
@@ -1193,14 +1194,14 @@ async def draw_char_score_img(ev: Event, uid: str, char: str, user_id: str, wave
                             _prop.attributeName, _prop.attributeValue, calc.calc_temp
                         )
                     _prop_display = t(_prop.attributeName, locale, partial=True)
-                    sh_temp_draw.text(
+                    draw_text_with_fallback(sh_temp_draw, 
                         (15, 187 + index * oset),
-                        f"{_prop_display[:12 if locale else 6]}",
+                        f"{_prop_display[:12 if locale == 'en' else 6]}",
                         name_color,
                         waves_font_24,
                         "lm",
                     )
-                    sh_temp_draw.text(
+                    draw_text_with_fallback(sh_temp_draw, 
                         (273, 187 + index * oset),
                         f"{_prop.attributeValue}",
                         num_color,
@@ -1218,7 +1219,7 @@ async def draw_char_score_img(ev: Event, uid: str, char: str, user_id: str, wave
                     score_color = WAVES_MOONLIT
                     if final_score > 0:
                         score_color = WAVES_FREEZING
-                    sh_temp_draw.text(
+                    draw_text_with_fallback(sh_temp_draw, 
                         (343, 191 + index * oset),
                         f"{final_score}{t('分', locale)}",
                         score_color,
@@ -1227,7 +1228,7 @@ async def draw_char_score_img(ev: Event, uid: str, char: str, user_id: str, wave
                     )
 
                 max_score, _ = get_max_score(_phantom.cost, calc.calc_temp)
-                sh_temp_draw.text(
+                draw_text_with_fallback(sh_temp_draw, 
                     (343, 191 + 7 * 55),
                     f"C{_phantom.cost}MAX:{max_score}{t('分', locale)}",
                     SPECIAL_GOLD,
@@ -1247,16 +1248,16 @@ async def draw_char_score_img(ev: Event, uid: str, char: str, user_id: str, wave
             score_temp.alpha_composite(sh_score_c)
             score_temp_draw = ImageDraw.Draw(score_temp)
 
-            score_temp_draw.text((180, 260), t("声骸评级", locale), GREY, waves_font_30 if locale else waves_font_40, "mm")
-            score_temp_draw.text((180, 380), f"{phantom_score:.2f}分", "white", waves_font_40, "mm")
-            score_temp_draw.text((180, 440), t("声骸评分", locale), GREY, waves_font_30 if locale else waves_font_40, "mm")
+            draw_text_with_fallback(score_temp_draw, (180, 260), t("声骸评级", locale), GREY, waves_font_30 if locale else waves_font_40, "mm")
+            draw_text_with_fallback(score_temp_draw, (180, 380), f"{phantom_score:.2f}分", "white", waves_font_40, "mm")
+            draw_text_with_fallback(score_temp_draw, (180, 440), t("声骸评分", locale), GREY, waves_font_30 if locale else waves_font_40, "mm")
         else:
             abs_bg = Image.open(TEXT_PATH / "abs.png")
             score_temp = Image.new("RGBA", abs_bg.size)
             score_temp.alpha_composite(abs_bg)
             score_temp_draw = ImageDraw.Draw(score_temp)
-            score_temp_draw.text((180, 130), t("暂无", locale), "white", waves_font_40, "mm")
-            score_temp_draw.text((180, 380), f"- {t('分', locale)}", "white", waves_font_40, "mm")
+            draw_text_with_fallback(score_temp_draw, (180, 130), t("暂无", locale), "white", waves_font_40, "mm")
+            draw_text_with_fallback(score_temp_draw, (180, 380), f"- {t('分', locale)}", "white", waves_font_40, "mm")
 
         phantom_temp.alpha_composite(score_temp, dest=(30, 120))
 
@@ -1280,15 +1281,15 @@ async def draw_char_score_img(ev: Event, uid: str, char: str, user_id: str, wave
                 ph_bg.alpha_composite(prop_img, (20, 32))
                 ph_bg_draw = ImageDraw.Draw(ph_bg)
 
-                ph_bg_draw.text((70, 50), f"{name[:12 if locale else 6]}", name_color, waves_font_24, "lm")
-                ph_bg_draw.text((350, 50), f"{value}", name_color, waves_font_24, "rm")
+                draw_text_with_fallback(ph_bg_draw, (70, 50), f"{name[:12 if locale == 'en' else 6]}", name_color, waves_font_24, "lm")
+                draw_text_with_fallback(ph_bg_draw, (350, 50), f"{value}", name_color, waves_font_24, "rm")
 
                 right_image_temp.alpha_composite(ph_bg.resize((500, 125)), (0, (ni + mi * 4) * 70))
 
         ph_tips = ph_1.copy()
         ph_tips_draw = ImageDraw.Draw(ph_tips)
-        ph_tips_draw.text((20, 50), t("[提示]评分模板", locale), "white", waves_font_24, "lm")
-        ph_tips_draw.text((350, 50), t(calc.calc_temp['name'], locale, partial=True), (255, 255, 0), waves_font_24, "rm")
+        draw_text_with_fallback(ph_tips_draw, (20, 50), t("[提示]评分模板", locale), "white", waves_font_24, "lm")
+        draw_text_with_fallback(ph_tips_draw, (350, 50), t(calc.calc_temp['name'], locale, partial=True), (255, 255, 0), waves_font_24, "rm")
         phantom_temp.alpha_composite(ph_tips, (40 + 2 * 370, 45))
 
         # 简介数据
@@ -1382,20 +1383,20 @@ async def draw_weight(image, role_name, weight_list_temp, calc_temp):
                     color = name_color
                 else:
                     color = "white"
-            draw.text((text_x, text_y), cell, font=font, fill=color)
+            draw_text_with_fallback(draw, (text_x, text_y), cell, font=font, fill=color)
 
     # 添加标题
     title = f"#{role_name}词条权重表"
-    draw.text((start_x, 20), title, font=waves_font_36, fill=SPECIAL_GOLD)
+    draw_text_with_fallback(draw, (start_x, 20), title, font=waves_font_36, fill=SPECIAL_GOLD)
 
     # 添加其他
     text = "词条得分：词条数值 * 当前词条权重 / 声骸未对齐最高分 * 对齐分数(50)"
-    draw.text((start_x, 750), text, font=waves_font_24, fill="white")
+    draw_text_with_fallback(draw, (start_x, 750), text, font=waves_font_24, fill="white")
     s = calc_temp["total_grade"]
     text = f"声骸评分标准：SSS≥{s[-1] * 250:.2f}分/ SS≥{s[-2] * 250:.2f}分／S≥{s[-3] * 250:.2f}分 / A≥{s[-4] * 250:.2f}分 / B≥{s[-5] * 250:.2f}分 / C"
-    draw.text((start_x, 800), text, font=waves_font_24, fill="white")
+    draw_text_with_fallback(draw, (start_x, 800), text, font=waves_font_24, fill="white")
     text = "当前角色评分标准仅供参考与娱乐，不代表任何官方或权威的评价。"
-    draw.text((start_x, 850), text, font=waves_font_24, fill="white")
+    draw_text_with_fallback(draw, (start_x, 850), text, font=waves_font_24, fill="white")
 
     return image
 
