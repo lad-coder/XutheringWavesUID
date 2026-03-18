@@ -26,6 +26,7 @@ from ..utils.image import (
 )
 from ..utils.api.model import DailyData, AccountBaseInfo
 from ..utils.constants import WAVES_GAME_ID
+from ..utils.at_help import ruser_id
 from ..utils.waves_api import waves_api
 from ..utils.error_reply import ERROR_CODE, WAVES_CODE_102, WAVES_CODE_103
 from ..utils.name_convert import char_name_to_char_id
@@ -66,11 +67,11 @@ async def seconds2hours(seconds: int) -> str:
 
 
 async def process_uid(uid, ev):
-    ck = await waves_api.get_self_waves_ck(uid, ev.user_id, ev.bot_id)
+    ck = await waves_api.get_self_waves_ck(uid, ruser_id(ev), ev.bot_id)
     if not ck:
         try:
             await WavesStaminaRecord.update_ck_valid(
-                user_id=ev.user_id,
+                user_id=ruser_id(ev),
                 bot_id=ev.bot_id,
                 bot_self_id=ev.bot_self_id or "",
                 uid=uid,
@@ -100,7 +101,7 @@ async def process_uid(uid, ev):
     try:
         mr_value = daily_info.energyData.cur if daily_info.energyData else None
         await WavesStaminaRecord.upsert_stamina_query(
-            user_id=ev.user_id,
+            user_id=ruser_id(ev),
             bot_id=ev.bot_id,
             bot_self_id=ev.bot_self_id or "",
             uid=uid,
@@ -119,7 +120,7 @@ async def process_uid(uid, ev):
 
 async def draw_stamina_img(bot: Bot, ev: Event):
     try:
-        uid_list = await WavesBind.get_uid_list_by_game(ev.user_id, ev.bot_id)
+        uid_list = await WavesBind.get_uid_list_by_game(ruser_id(ev), ev.bot_id)
         logger.info(f"[鸣潮][每日信息]UID: {uid_list}")
         if uid_list is None:
             return ERROR_CODE[WAVES_CODE_103]
@@ -185,7 +186,7 @@ async def _draw_stamina_img(ev: Event, valid: Dict) -> Image.Image:
     avatar = await get_event_avatar(ev)
 
     # 随机获得pile
-    user = await WavesUser.get_user_by_attr(ev.user_id, ev.bot_id, "uid", daily_info.roleId, game_id=WAVES_GAME_ID)
+    user = await WavesUser.get_user_by_attr(ruser_id(ev), ev.bot_id, "uid", daily_info.roleId, game_id=WAVES_GAME_ID)
     pile_id = None
     force_use_bg = False
     force_not_use_bg = False
@@ -201,7 +202,7 @@ async def _draw_stamina_img(ev: Event, valid: Dict) -> Image.Image:
         )
         char_id = char_name_to_char_id(stamina_bg_value)
         if char_id in SPECIAL_CHAR:
-            ck = await waves_api.get_self_waves_ck(daily_info.roleId, ev.user_id, ev.bot_id)
+            ck = await waves_api.get_self_waves_ck(daily_info.roleId, ruser_id(ev), ev.bot_id)
             if ck:
                 for char_id in SPECIAL_CHAR[char_id]:
                     role_detail_info = await waves_api.get_role_detail_info(char_id, daily_info.roleId, ck)
@@ -701,7 +702,7 @@ async def _render_stamina_card_pil(
 
 
 async def draw_pic_with_ring(ev: Event):
-    pic = await get_event_avatar(ev, is_valid_at_param=False)
+    pic = await get_event_avatar(ev)
 
     mask_pic = Image.open(TEXT_PATH / "avatar_mask.png")
     img = Image.new("RGBA", (200, 200))

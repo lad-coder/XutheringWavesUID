@@ -21,8 +21,8 @@ waves_daily_info = SV("waves查询体力")
     )
 )
 async def send_daily_info_pic(bot: Bot, ev: Event):
-    await bot.logger.info(f"[鸣潮]开始执行[每日信息]: {ev.user_id}")
-    uid = await WavesBind.get_uid_by_game(ev.user_id, ev.bot_id)
+    await bot.logger.info(f"[鸣潮]开始执行[每日信息]: {ruser_id(ev)}")
+    uid = await WavesBind.get_uid_by_game(ruser_id(ev), ev.bot_id)
     if not uid:
         return await bot.send(ERROR_CODE[WAVES_CODE_103])
     return await bot.send(await draw_stamina_img(bot, ev))

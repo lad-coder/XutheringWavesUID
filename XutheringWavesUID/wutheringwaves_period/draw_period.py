@@ -447,7 +447,7 @@ def wrap_text(text: str, font, max_width: int, draw: ImageDraw.ImageDraw) -> lis
 
 
 async def draw_pic_with_ring(ev: Event):
-    pic = await get_event_avatar(ev, is_valid_at_param=False)
+    pic = await get_event_avatar(ev)
 
     mask_pic = Image.open(TEXT_PATH / "avatar_mask.png")
     img = Image.new("RGBA", (200, 200))
