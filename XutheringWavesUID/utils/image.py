@@ -103,9 +103,11 @@ def pil_to_b64(img: Image.Image, quality: int = 0, bake: bool = False) -> str:
     if bake and quality > 0:
         import hashlib
         from .resource.RESOURCE_PATH import BAKE_PATH
-        # 用图片像素哈希前16位 + quality + 尺寸 做 key
-        pixel_hash = hashlib.md5(img.tobytes()[:4096]).hexdigest()[:12]
-        bake_path = BAKE_PATH / f"{pixel_hash}_q{quality}.webp"
+        bake_dir = BAKE_PATH / "pil"
+        bake_dir.mkdir(exist_ok=True)
+        raw = img.tobytes()
+        pixel_hash = hashlib.md5(raw).hexdigest()[:16]
+        bake_path = bake_dir / f"{pixel_hash}_{img.width}x{img.height}_q{quality}.webp"
         if bake_path.exists():
             with open(bake_path, "rb") as f:
                 return "data:image/webp;base64," + base64.b64encode(f.read()).decode('utf-8')
