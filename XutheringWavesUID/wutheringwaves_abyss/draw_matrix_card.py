@@ -156,8 +156,13 @@ async def upload_matrix_record(
     if not mode.teams:
         return
 
+    # 按分数降序，只取最高分和次高分两队上传
+    sorted_teams = sorted(
+        enumerate(mode.teams), key=lambda x: x[1].score, reverse=True
+    )[:2]
+
     teams = []
-    for idx, team in enumerate(mode.teams):
+    for idx, team in sorted_teams:
         buff = team.buffs[0] if team.buffs else None
         char_ids = char_ids_map.get((mode.modeId, idx), [])
         teams.append(
@@ -179,7 +184,7 @@ async def upload_matrix_record(
         modeId=mode.modeId,
         rank=mode.rank,
         score=mode.score,
-        teamCount=len(teams),
+        teamCount=len(mode.teams),
         teams=teams,
     )
     push_item(QUEUE_MATRIX_RECORD, matrix_item.model_dump())

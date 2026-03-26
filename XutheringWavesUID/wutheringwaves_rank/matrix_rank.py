@@ -410,6 +410,16 @@ async def draw_all_matrix_rank_card(bot: Bot, ev: Event):
                     except Exception:
                         pass
 
+            # 不足3人时用 "模版\n角色" 文字占位
+            actual_count = len(matrix_team.char_detail) or len(matrix_team.role_icons)
+            for empty_idx in range(actual_count, 3):
+                placeholder = Image.new("RGBA", (45, 45), (60, 60, 60, int(0.5 * 255)))
+                ph_draw = ImageDraw.Draw(placeholder)
+                ph_draw.rectangle([0, 0, 44, 44], outline=(120, 120, 120, 200), width=1)
+                ph_draw.text((22, 16), "模版", GREY, waves_font_12, "mm")
+                ph_draw.text((22, 32), "角色", GREY, waves_font_12, "mm")
+                role_bg.alpha_composite(placeholder, (team_base_x + team_index * team_spacing + empty_idx * 50, 20))
+
             # buff icon
             if matrix_team.buff_icon:
                 try:

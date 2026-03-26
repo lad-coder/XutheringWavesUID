@@ -1,4 +1,4 @@
-"""通过opencv直方图相似度将角色头像URL匹配到角色ID"""
+"""通过opencv分块直方图相似度将角色头像URL匹配到角色ID"""
 
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -33,21 +33,45 @@ def _try_import_np():
 _cv2 = _try_import_cv2()
 _np = _try_import_np()
 
-# 匹配尺寸
-_MATCH_SIZE = (64, 64)
+# 匹配图像尺寸
+_MATCH_SIZE = 128
+# 分块数 (4x4 = 16块)
+_BLOCK_NUM = 4
+# HSV直方图 bins
+_H_BINS = 16
+_S_BINS = 16
 # 相似度阈值
 _MATCH_THRESHOLD = 0.3
 
-# 缓存: char_id_str -> histogram
-_ref_hist_cache: Dict[str, object] = {}
+# 缓存: char_id_str -> feature vector
+_ref_feat_cache: Dict[str, object] = {}
 
 
-def _compute_hist(img_bgr):
-    """计算HSV直方图"""
-    hsv = _cv2.cvtColor(img_bgr, _cv2.COLOR_BGR2HSV)
-    hist = _cv2.calcHist([hsv], [0, 1], None, [30, 32], [0, 180, 0, 256])
-    _cv2.normalize(hist, hist, 0, 1, _cv2.NORM_MINMAX)
-    return hist
+def _compute_block_feature(img_bgr):
+    """计算4x4分块HSV直方图特征向量"""
+    img_bgr = _cv2.resize(img_bgr, (_MATCH_SIZE, _MATCH_SIZE))
+    h, w = img_bgr.shape[:2]
+    bh, bw = h // _BLOCK_NUM, w // _BLOCK_NUM
+    hists = []
+    for r in range(_BLOCK_NUM):
+        for c in range(_BLOCK_NUM):
+            block = img_bgr[r * bh : (r + 1) * bh, c * bw : (c + 1) * bw]
+            hsv = _cv2.cvtColor(block, _cv2.COLOR_BGR2HSV)
+            hist = _cv2.calcHist(
+                [hsv], [0, 1], None, [_H_BINS, _S_BINS], [0, 180, 0, 256]
+            )
+            _cv2.normalize(hist, hist, 0, 1, _cv2.NORM_MINMAX)
+            hists.append(hist.flatten())
+    return _np.concatenate(hists)
+
+
+def _cosine_similarity(a, b):
+    """余弦相似度"""
+    dot = _np.dot(a, b)
+    norm = _np.linalg.norm(a) * _np.linalg.norm(b)
+    if norm < 1e-10:
+        return 0.0
+    return float(dot / norm)
 
 
 def _pil_to_cv2_bgr(pil_img: Image.Image):
@@ -56,10 +80,10 @@ def _pil_to_cv2_bgr(pil_img: Image.Image):
     return _cv2.cvtColor(rgb, _cv2.COLOR_RGB2BGR)
 
 
-def _load_reference_histograms() -> Dict[str, object]:
-    """加载本地头像并计算直方图（带内存缓存）"""
-    if _ref_hist_cache:
-        return _ref_hist_cache
+def _load_reference_features() -> Dict[str, object]:
+    """加载本地头像并计算分块特征（带内存缓存）"""
+    if _ref_feat_cache:
+        return _ref_feat_cache
 
     if not AVATAR_PATH.exists():
         logger.warning(f"[鸣潮] 头像目录不存在: {AVATAR_PATH}")
@@ -71,15 +95,13 @@ def _load_reference_histograms() -> Dict[str, object]:
             img = _cv2.imread(str(avatar_file))
             if img is None:
                 continue
-            img = _cv2.resize(img, _MATCH_SIZE)
-            hist = _compute_hist(img)
-            if hist is not None:
-                _ref_hist_cache[char_id_str] = hist
+            feat = _compute_block_feature(img)
+            _ref_feat_cache[char_id_str] = feat
         except Exception as e:
             logger.debug(f"[鸣潮] 加载头像失败 {avatar_file}: {e}")
 
-    logger.info(f"[鸣潮] 加载了 {len(_ref_hist_cache)} 个参考头像用于矩阵匹配")
-    return _ref_hist_cache
+    logger.info(f"[鸣潮] 加载了 {len(_ref_feat_cache)} 个参考头像用于矩阵匹配")
+    return _ref_feat_cache
 
 
 def match_avatar_image(pil_img: Image.Image) -> Optional[int]:
@@ -93,19 +115,16 @@ def match_avatar_image(pil_img: Image.Image) -> Optional[int]:
 
     try:
         bgr = _pil_to_cv2_bgr(pil_img)
-        bgr = _cv2.resize(bgr, _MATCH_SIZE)
-        query_hist = _compute_hist(bgr)
+        query_feat = _compute_block_feature(bgr)
 
-        ref_hists = _load_reference_histograms()
-        if not ref_hists:
+        ref_feats = _load_reference_features()
+        if not ref_feats:
             return None
 
         best_score = -1.0
         best_char_id = None
-        for char_id_str, ref_hist in ref_hists.items():
-            score = _cv2.compareHist(
-                query_hist, ref_hist, _cv2.HISTCMP_CORREL
-            )
+        for char_id_str, ref_feat in ref_feats.items():
+            score = _cosine_similarity(query_feat, ref_feat)
             if score > best_score:
                 best_score = score
                 best_char_id = char_id_str
