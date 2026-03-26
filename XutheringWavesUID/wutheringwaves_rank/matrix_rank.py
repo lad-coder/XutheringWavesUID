@@ -81,18 +81,18 @@ pic_cache = TimedCache(600, 200)
 
 def get_score_color(score: int):
     """总排行分数颜色"""
-    if score >= 60000:
+    if score >= 200000:
+        return CRYSTAL_SENTINEL
+    elif score >= 150000:
         return (255, 0, 0)
     elif score >= 45000:
         return (234, 183, 4)
-    elif score >= 30000:
+    elif score >= 21000:
         return (185, 106, 217)
-    elif score >= 15000:
-        return (22, 145, 121)
-    elif score >= 8000:
+    elif score >= 12000:
         return (53, 152, 219)
     else:
-        return (255, 255, 255)
+        return (128, 128, 128)
 
 
 CRYSTAL_SENTINEL = (-1, -1, -1)  # 标记需要使用水晶炫彩
@@ -157,21 +157,19 @@ def draw_crystal_text(img: Image.Image, text: str, x: int, y: int, font, anchor=
 
 
 def get_local_score_color(score: int):
-    """本地排行分数颜色, 200000+ 返回 CRYSTAL_SENTINEL"""
-    if score >= 200000:
+    """群排行分数颜色 — 红/彩分界线比总排行低"""
+    if score >= 150000:
         return CRYSTAL_SENTINEL
-    elif score >= 60000:
+    elif score >= 100000:
         return (255, 0, 0)
-    elif score >= 40000:
+    elif score >= 45000:
         return (234, 183, 4)
-    elif score >= 20000:
+    elif score >= 21000:
         return (185, 106, 217)
-    elif score >= 10000:
-        return (22, 145, 121)
-    elif score >= 5000:
+    elif score >= 12000:
         return (53, 152, 219)
     else:
-        return (200, 200, 200)
+        return (128, 128, 128)
 
 
 async def get_rank(item: MatrixRankItem) -> Optional[MatrixRankRes]:
@@ -353,13 +351,17 @@ async def draw_all_matrix_rank_card(bot: Bot, ev: Event):
             role_bg.alpha_composite(info_block, (330, 66))
 
         # 总分数 — 左移10px (矩阵分数比海墟多一位)
-        role_bg_draw.text(
-            (1130, 55),
-            f"{rank_temp.score}",
-            get_score_color(rank_temp.score),
-            waves_font_44,
-            "mm",
-        )
+        score_color = get_score_color(rank_temp.score)
+        if score_color == CRYSTAL_SENTINEL:
+            draw_crystal_text(role_bg, f"{rank_temp.score}", 1130, 55, waves_font_44, "mm")
+        else:
+            role_bg_draw.text(
+                (1130, 55),
+                f"{rank_temp.score}",
+                score_color,
+                waves_font_44,
+                "mm",
+            )
 
         # 队伍角色 — 整体左移20px
         team_base_x = 550

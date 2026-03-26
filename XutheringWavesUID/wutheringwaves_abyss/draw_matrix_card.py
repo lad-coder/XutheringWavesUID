@@ -42,17 +42,17 @@ MODE_NAME_MAP = {
 
 
 def _get_score_color_class(score: int) -> str:
-    """根据分数返回CSS颜色class"""
+    """根据分数返回CSS颜色class — 与总排行配色一致"""
     if score >= 200000:
         return "score-rainbow"
-    elif score >= 100000:
+    elif score >= 150000:
         return "score-red"
     elif score >= 45000:
         return "score-gold"
     elif score >= 21000:
-        return "score-white"
+        return "score-purple"
     elif score >= 12000:
-        return "score-green"
+        return "score-blue"
     else:
         return "score-grey"
 
