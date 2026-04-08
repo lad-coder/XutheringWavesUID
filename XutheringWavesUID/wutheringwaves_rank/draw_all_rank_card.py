@@ -1,6 +1,7 @@
 import copy
 import time
 import asyncio
+import colorsys
 from typing import Union, Optional
 from pathlib import Path
 
@@ -333,11 +334,31 @@ async def draw_all_rank_card(bot: Bot, ev: Event, char: str, rank_type: str, pag
                 color = bot_color.pop(0)
                 bot_color_map[botName] = color
 
-            info_block = Image.new("RGBA", (200, 30), color=(255, 255, 255, 0))
-            info_block_draw = ImageDraw.Draw(info_block)
-            info_block_draw.rounded_rectangle([0, 0, 200, 30], radius=6, fill=color + (int(0.6 * 255),))
-            info_block_draw.text((100, 15), f"bot: {botName}", "white", waves_font_18, "mm")
-            bar_bg.alpha_composite(info_block, (350, 65))
+            if botName != '无敌美少女':
+                info_block = Image.new("RGBA", (200, 30), color=(255, 255, 255, 0))
+                info_block_draw = ImageDraw.Draw(info_block)
+                info_block_draw.rounded_rectangle([0, 0, 200, 30], radius=6, fill=color + (int(0.6 * 255),))
+                info_block_draw.text((100, 15), f"bot: {botName}", "white", waves_font_18, "mm")
+                bar_bg.alpha_composite(info_block, (350, 65))
+            else:
+                info_block = Image.new("RGBA", (200, 30), color=(255, 255, 255, 0))
+                gradient = Image.new("RGBA", (200, 30))
+                gradient_draw = ImageDraw.Draw(gradient)
+                for i in range(200):
+                    r, g, b = [int(c * 255) for c in colorsys.hsv_to_rgb(i / 200.0, 0.7, 0.9)]
+                    gradient_draw.line([(i, 0), (i, 30)], fill=(r, g, b, 255))
+                
+                mask = Image.new("L", (200, 30), 0)
+                mask_draw = ImageDraw.Draw(mask)
+                mask_draw.rounded_rectangle([0, 0, 200, 30], radius=6, fill=int(0.6 * 255))
+                gradient.putalpha(mask)
+                
+                info_block.alpha_composite(gradient, (0, 0))
+                info_block_draw = ImageDraw.Draw(info_block)
+                info_block_draw.rounded_rectangle([0, 0, 199, 29], radius=6, outline=SPECIAL_GOLD, width=2)
+                info_block_draw.text((100, 15), f"bot: {botName}", "white", waves_font_18, "mm")
+                bar_bg.alpha_composite(info_block, (350, 65))
+
 
         # 贴到背景
         card_img.paste(bar_bg, (0, title_h + text_bar_h + index * bar_star_h), bar_bg)
