@@ -312,14 +312,6 @@
         "need_ck": true,
         "need_sk": false,
         "need_admin": false
-      },
-      {
-        "name": "矩阵出场率",
-        "desc": "本期奇点扩张队伍出场率统计：热门配队（按出现次数）+ 高分配队（按平均分），各取前8。可选传角色名只看含该角色的队伍。命令字：`矩阵热门队` / `矩阵高分队` / `矩阵配队` / `矩阵出场率`。",
-        "eg": "矩阵出场率 椿",
-        "need_ck": false,
-        "need_sk": false,
-        "need_admin": false
       }
     ]
   },
