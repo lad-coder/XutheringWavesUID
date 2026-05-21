@@ -1,9 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Union
 
-from gsuid_core.logger import logger
-
-
 ApplyBuffsFunc = Callable[[Dict[str, Any], Any], None]
 
 
@@ -35,7 +32,9 @@ class ScoreHyperParams:
     template_override: Optional[CharTemplate] = None
     apply_buffs: Optional[ApplyBuffsFunc] = None
     skill_weight_overrides: Optional[Dict[int, List[float]]] = None
-    # {chain_threshold: [普攻, 重击, 共鸣技能, 共鸣解放]}, 评分时取 ≤ 当前命座的最大键
+    # {chain_threshold: [普攻, 重击, 共鸣技能, 共鸣解放, 其它, 声骸技能]}, 取 ≤ 当前命座的最大键。
+    # idx4=其它(变奏/延奏等, 不吃技能加成); idx5=声骸技能(独立加成区, 吃 char_damage 门控套装/武器
+    # buff + 攻击 + 属性)。旧 5 元素模板自动补 0 (声骸技能段=0), 向后兼容。
 
     # ── 自动套装/声骸/武器增益的战斗场景 ──
     # 循环 cast 列表 (可选覆盖)。默认 None = 所有通用招式段 (四种伤害+声骸技能+闪避反击+变奏+
@@ -124,13 +123,3 @@ def get_panel_score_grade(score: float) -> str:
         if score >= threshold:
             return label
     return "c"
-
-
-def safe_calc_score(*args, **kwargs) -> Optional[ScoreReport]:
-    """与 safe_calc_damage 同 gate 行为, 但返回 Optional[ScoreReport]。"""
-    try:
-        from .waves_build.score import safe_calc_score as _func
-        return _func(*args, **kwargs)
-    except ImportError:
-        logger.info("请等待下载完成")
-        return None

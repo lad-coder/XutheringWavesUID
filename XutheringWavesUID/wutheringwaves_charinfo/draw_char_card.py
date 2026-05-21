@@ -594,6 +594,7 @@ async def draw_char_detail_img(
     is_force_avatar=False,
     change_list_regex=None,
     is_limit_query=False,
+    show_score=True,
 ):
     locale = await WavesLangSettings.get_lang(ev.user_id)
     # waves_id 时是查别人, 用 self uid 取本人偏好
@@ -776,10 +777,7 @@ async def draw_char_detail_img(
 
     score_report = None
     scoreDetail = ScoreDetailRegister.find_class(char_id)
-    if scoreDetail and (
-        is_limit_query
-        or (role_detail.phantomData and role_detail.phantomData.equipPhantomList)
-    ):
+    if scoreDetail and show_score and not is_limit_query and role_detail.phantomData and role_detail.phantomData.equipPhantomList:
         try:
             score_calc = scoreDetail[0] if isinstance(scoreDetail, list) else scoreDetail
             score_title = score_calc.get("title", f"综合评分-{char_name}")
@@ -1623,11 +1621,11 @@ async def ph_card_draw_optimal(
         else:
             draw_text_with_fallback(sh_temp_draw, (130, 40), t("推荐声骸", locale), SPECIAL_GOLD, waves_font_28, "lm")
 
-        _tpl_w = 130 if locale == "en" else 100
+        _tpl_w = 175 if locale == "en" else 150
         tpl_badge = Image.new("RGBA", (_tpl_w, 30), (255, 255, 255, 0))
         tpl_badge_draw = ImageDraw.Draw(tpl_badge)
         tpl_badge_draw.rounded_rectangle([0, 0, _tpl_w, 30], radius=8, fill=(0, 0, 0, int(0.8 * 255)))
-        draw_text_with_fallback(tpl_badge_draw, (_tpl_w // 2, 15), t("模板声骸", locale), "white", waves_font_18, "mm")
+        draw_text_with_fallback(tpl_badge_draw, (_tpl_w // 2, 15), f"Lv.25 {t('模板声骸', locale)}", "white", waves_font_18, "mm")
         sh_temp.alpha_composite(tpl_badge, (128, 58))
 
         for ci in range(slot.cost):
@@ -1701,8 +1699,11 @@ async def ph_card_draw_optimal(
 
 _SCORE_RULE_TITLE = "综合评分规则（测试中）"
 _SCORE_RULE_LINES = (
-    "以两~三分钟的常规队伍循环为基础，根据当前套装和装备求解得到最优期望伤害的词条作为基准计分",
-    "由于共鸣效率会影响限定时间内循环次数，作为分段的独立乘区。单通等特殊场景不适用综合评分"
+    "以2-3分钟的常规队伍循环为基础，根据当前套装和装备求解得到最优期望伤害的词条作为基准计分",
+    "由于共鸣效率会影响限定时间内循环次数，作为分段的独立乘区。单通等特殊场景不适用综合评分",
+    "显示的共鸣效率部分建议仅对于循环流畅度考虑，共效挂钩的加成等会另外计算收益得分",
+    "最优面板共效可能由于词条取最大值导致偏高，请折算为常见效率词条数值",
+    "仅针对常见队伍和流程，请以实际情况为准。如有建议请联系开发者提供反馈",
 )
 
 
@@ -1810,7 +1811,7 @@ async def draw_char_optimize_img(ev: Event, uid: str, char: str, user_id: str, w
             logger.warning(f"[鸣潮·优化] {char_name} 计算失败: {e}")
 
     if score_report is None:
-        return f"[鸣潮] {char_name} 优化计算失败"
+        return f"[鸣潮] {char_name} 优化计算失败，请检查服务器连接状态"
 
     partials = sorted(
         [

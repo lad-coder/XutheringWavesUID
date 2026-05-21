@@ -584,7 +584,8 @@ async def send_char_detail_msg(bot: Bot, ev: Event):
     char = res.matched
     canonical_cmd = f"{PREFIX}角色面板{char}"
 
-    im = await draw_char_detail_img(ev, uid, char, user_id)
+    # 「查询」走面板但不出综合评分；「角色面板」及其他入口照常显示
+    im = await draw_char_detail_img(ev, uid, char, user_id, show_score=ev.command != "查询")
     if isinstance(im, str):
         await bot.send(res.with_tip(im, canonical_cmd))
         await _send_pending_advice(bot, ev)
