@@ -9,7 +9,7 @@ from gsuid_core.logger import logger
 from gsuid_core.models import Event
 
 from .hint import error_reply
-from .util import get_version
+from .util import get_version, hide_uid
 from .api.model import RoleList, AccountBaseInfo, OwnedRoleInfoResponse
 from .waves_api import waves_api
 from .resource.constant import SPECIAL_CHAR_INT_ALL
@@ -164,6 +164,7 @@ async def save_card_info(
     token: str = "",
     role_info: Optional[RoleList] = None,
     sender_avatar: str = "",
+    is_self: bool = True,
 ):
     if len(waves_data) == 0:
         return
@@ -207,10 +208,11 @@ async def save_card_info(
 
     save_data = list(old_data.values())
 
-    try:
-        await record_refresh_batch(uid, refresh_update.keys(), refresh_unchanged.keys())
-    except Exception as e:
-        logger.warning(f"[鸣潮·state] refresh 状态记录失败 uid={uid}: {e}")
+    if is_self:
+        try:
+            await record_refresh_batch(uid, refresh_update.keys(), refresh_unchanged.keys())
+        except Exception as e:
+            logger.warning(f"[鸣潮·state] refresh 状态记录失败 uid={uid}: {e}")
 
     await send_card(uid, user_id, save_data, is_self_ck, token, role_info, waves_data, sender_avatar)
 
@@ -330,6 +332,7 @@ async def refresh_char(
     waves_map: Optional[Dict] = None,
     is_self_ck: bool = False,
     refresh_type: Union[str, List[str]] = "all",
+    is_self: bool = True,
 ) -> Union[str, List]:
     waves_datas = []
     if not ck:
@@ -342,13 +345,13 @@ async def refresh_char(
         return role_info.throw_msg()
 
     if isinstance(role_info.data, dict) and "roleList" not in role_info.data:
-        return f"鸣潮特征码[{uid}]的角色数据未公开展示，请【{PREFIX}登录】或在库街区展示角色"
+        return f"鸣潮特征码[{hide_uid(uid)}]的角色数据未公开展示，请【{PREFIX}登录】或在库街区展示角色"
 
     try:
         role_info = RoleList.model_validate(role_info.data)
     except Exception as e:
         logger.exception(f"{uid} 角色信息解析失败", e)
-        msg = f"鸣潮特征码[{uid}]获取数据失败\n1.是否注册过库街区\n2.库街区能否查询当前鸣潮特征码数据"
+        msg = f"鸣潮特征码[{hide_uid(uid)}]获取数据失败\n1.是否注册过库街区\n2.库街区能否查询当前鸣潮特征码数据"
         return msg
 
     request_role_ids: List[int] = []
@@ -478,6 +481,7 @@ async def refresh_char(
         token=ck,
         role_info=role_info,
         sender_avatar=sender_avatar,
+        is_self=is_self,
     )
 
     if not waves_datas:
