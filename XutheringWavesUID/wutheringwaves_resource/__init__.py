@@ -12,6 +12,7 @@ from ..utils.download_utils import copy_if_different, check_file_hash
 from ..utils.resource.download_all_resource import (
     reload_all_modules,
     download_all_resource,
+    notify_master_and_restart,
 )
 from ..utils.resource.RESOURCE_PATH import (
     BUILD_PATH,
@@ -56,8 +57,15 @@ async def send_download_resource_msg(bot: Bot, ev: Event):
 
 
 async def startup():
-    copy_if_different(BUILD_TEMP, BUILD_PATH, "安全工具资源")
-    copy_if_different(MAP_BUILD_TEMP, MAP_BUILD_PATH, "伤害计算资源")
+    build_applied = copy_if_different(BUILD_TEMP, BUILD_PATH, "安全工具资源")
+    map_applied = copy_if_different(MAP_BUILD_TEMP, MAP_BUILD_PATH, "伤害计算资源")
+    if build_applied or map_applied:
+        logger.info("[鸣潮] 应用已下载的新构建, 重启加载...")
+        from gsuid_core.buildin_plugins.core_command.core_restart.restart import (
+            restart_genshinuid,
+        )
+        await restart_genshinuid(is_send=False)
+        return
 
     await reload_all_modules()  # 已有资源，先加载，不然检查资源列表太久了
     logger.info("[鸣潮] 等待资源下载完成...")
@@ -72,10 +80,7 @@ async def startup():
 
     if build_updated or map_updated:
         logger.info("[鸣潮] 构建文件已更新，正在重启...")
-        from gsuid_core.buildin_plugins.core_command.core_restart.restart import (
-            restart_genshinuid,
-        )
-        await restart_genshinuid(is_send=False)
+        await notify_master_and_restart()
     else:
         await reload_all_modules()
 
@@ -96,10 +101,7 @@ async def auto_download_resource():
     map_updated = copy_if_different(MAP_BUILD_TEMP, MAP_BUILD_PATH, "伤害计算资源", soft=True)
     if build_updated or map_updated:
         logger.info("[鸣潮] 定时任务: 构建文件已更新，正在重启...")
-        from gsuid_core.buildin_plugins.core_command.core_restart.restart import (
-            restart_genshinuid,
-        )
-        await restart_genshinuid(is_send=False)
+        await notify_master_and_restart("定时任务: 构建文件已更新，正在重启...")
     else:
         await reload_all_modules()
     logger.info("[鸣潮] 定时任务: 资源下载完成")
