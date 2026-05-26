@@ -434,9 +434,9 @@ def _render_gacha_card(
     # 仅展示有抽卡记录（总抽数 > 0）的卡池
     show_main = [n for n in total_data if "新手" not in n and total_data[n]["total"] > 0]
     show_newbie = [n for n in total_data if "新手" in n and total_data[n]["total"] > 0]
+    drawable_newbie = [n for n in show_newbie if total_data[n]["rank_s_list"]]
     title_num = len(show_main)
-    newbie_flag = bool(show_newbie)
-    _newbielen = 395 if newbie_flag else 0
+    _newbielen = 395 if drawable_newbie else 0
 
     def _content_h(col: int) -> int:
         body = 0
@@ -773,7 +773,6 @@ def _render_gacha_card(
         else:
             y += get_num_h(len(s_list), column) * row_h
 
-    drawable_newbie = [n for n in show_newbie if total_data[n]["rank_s_list"]]
     newbie_card_w = 250
     newbie_card_h = 360
     newbie_gap = 30
