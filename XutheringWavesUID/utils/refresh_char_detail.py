@@ -161,7 +161,7 @@ async def send_card(
         try:
             if len(waves_data) == 1:
                 results = await asyncio.gather(
-                    *(asyncio.to_thread(_compute_one_char_rank, rd, True, True) for rd in save_data),
+                    *(asyncio.to_thread(_compute_one_char_rank, rd, True, True) for rd in waves_data),
                     return_exceptions=True,
                 )
                 ranks = [r for r in results if isinstance(r, WavesCharRank)]
@@ -249,8 +249,8 @@ async def save_card_info(
     except Exception as e:
         logger.exception(f"save_card_info save failed {path}:", e)
 
-    # 保存charListData.json（角色评分缓存）
-    waves_char_rank = await get_waves_char_rank(uid, save_data, True)
+    # 保存charListData.json（角色评分缓存）—— 只算本次变更的角色, 未变更角色 score 不变
+    waves_char_rank = await get_waves_char_rank(uid, list(refresh_update.values()), True)
 
     # 候选门槛: 不在漂泊者列表、本次确有变更、有旧分、旧分>140、
     #   跨档 / 单角色刷新 delta∈(0,50) ; 否则 delta∈(3,50)
