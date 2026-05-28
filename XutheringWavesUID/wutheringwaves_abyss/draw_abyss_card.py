@@ -39,6 +39,7 @@ from .period import get_tower_period_number
 from .draw_abyss_card_pil import (
     draw_abyss_img as draw_abyss_img_pil,
     get_abyss_data,
+    upload_abyss_record,
     ABYSS_ERROR_MESSAGE_NO_UNLOCK,
     ABYSS_ERROR_MESSAGE_NO_DEEP,
 )
@@ -98,6 +99,8 @@ async def draw_abyss_img(ev: Event, uid: str, user_id: str) -> Union[bytes, str]
             break
         if not needAbyss:
             return ABYSS_ERROR_MESSAGE_NO_DEEP
+
+        await upload_abyss_record(is_self_ck, uid, difficultyName, abyss_data)
 
         avatar = await get_event_avatar(ev)
         avatar_url = pil_to_b64(avatar, quality=75)

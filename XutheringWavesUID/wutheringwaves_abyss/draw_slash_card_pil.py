@@ -12,6 +12,7 @@ from gsuid_core.utils.image.convert import convert_img
 
 from .period import get_slash_period_number
 from ..utils.hint import error_reply
+from ..utils.at_help import is_valid_at
 from ..utils.util import hide_uid, get_hide_uid_pref
 from ..utils.image import (
     GOLD,
@@ -332,7 +333,8 @@ async def draw_slash_img(ev: Event, uid: str, user_id: str) -> Union[bytes, str]
             )
             index += 1
 
-    sender_avatar = (ev.sender or {}).get("avatar") or ""
+    # at 查询不带头像, 避免覆盖被查者
+    sender_avatar = "" if is_valid_at(ev) else ((ev.sender or {}).get("avatar") or "")
     if not (isinstance(sender_avatar, str) and sender_avatar.startswith(("http://", "https://"))):
         sender_avatar = ""
 

@@ -9,6 +9,7 @@ from gsuid_core.logger import logger
 from gsuid_core.models import Event
 
 from .hint import error_reply
+from .at_help import is_valid_at
 from .util import get_version, hide_uid
 from .api.model import RoleList, AccountBaseInfo, OwnedRoleInfoResponse
 from .waves_api import waves_api
@@ -493,7 +494,8 @@ async def refresh_char(
 
         waves_datas.append(role_detail_info)
 
-    sender_avatar = (ev.sender or {}).get("avatar") or ""
+    # at 查询不带头像, 避免覆盖被查者
+    sender_avatar = "" if is_valid_at(ev) else ((ev.sender or {}).get("avatar") or "")
     if not (isinstance(sender_avatar, str) and sender_avatar.startswith(("http://", "https://"))):
         sender_avatar = ""
 

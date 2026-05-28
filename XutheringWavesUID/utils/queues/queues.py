@@ -47,6 +47,10 @@ class TaskDispatcher:
         # 只看 worker 状态, 避免 shutdown-restart 边缘创建第二个 worker.
         if self._worker is not None and not self._worker.done():
             if self._loop is loop:
+                # 复用旧 worker 时若 running 被外部清零, 不补就会一直静默丢消息.
+                if not self.running:
+                    self.running = True
+                    logger.info("任务分发器复用旧 worker, 已重置 running")
                 return
             logger.warning("任务分发器已在其他事件循环中启动")
             return
@@ -183,6 +187,15 @@ def shutdown_dispatcher() -> None:
 def push_item(queue_name: str, item: Any) -> None:
     if not dispatcher.running:
         dispatcher.start()
+        # 兜底: 仅同一 loop 上 worker 存活时强制补 running, 不越过 start() 跨 loop 拒绝
+        if not dispatcher.running and dispatcher._worker is not None and not dispatcher._worker.done():
+            try:
+                current_loop = asyncio.get_running_loop()
+            except RuntimeError:
+                current_loop = None
+            if current_loop is not None and dispatcher._loop is current_loop:
+                dispatcher.running = True
+                logger.warning("push_item 兜底重置 running=True (worker 存活)")
     dispatcher.emit(queue_name, item)
 
 
