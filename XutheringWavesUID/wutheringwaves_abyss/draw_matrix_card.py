@@ -11,6 +11,7 @@ from gsuid_core.logger import logger
 from gsuid_core.models import Event
 
 from ..utils.hint import error_reply
+from ..utils.at_help import is_valid_at
 from ..utils.util import hide_uid, get_hide_uid_pref
 from ..utils.waves_api import waves_api
 from ..utils.error_reply import WAVES_CODE_102
@@ -274,7 +275,8 @@ async def draw_matrix_img(ev: Event, uid: str, user_id: str) -> Union[bytes, str
     if char_ids_map and is_self_ck:
         char_ids_map = await _resolve_special_chars(uid, char_ids_map)
 
-    sender_avatar = (ev.sender or {}).get("avatar") or ""
+    # at 查询不带头像, 避免覆盖被查者
+    sender_avatar = "" if is_valid_at(ev) else ((ev.sender or {}).get("avatar") or "")
     if not (isinstance(sender_avatar, str) and sender_avatar.startswith(("http://", "https://"))):
         sender_avatar = ""
 
@@ -371,6 +373,12 @@ async def _draw_matrix_detail_pil(
         account_info = await _get_account_info(uid, ck)
         if isinstance(account_info, str):
             return account_info
+
+        # 与 slash/abyss 一致: PIL 路径独立触发上传 (HTML 回退时会和顶层一起双发, 服务端幂等无害)
+        sender_avatar = "" if is_valid_at(ev) else ((ev.sender or {}).get("avatar") or "")
+        if not (isinstance(sender_avatar, str) and sender_avatar.startswith(("http://", "https://"))):
+            sender_avatar = ""
+        await upload_matrix_record(True, uid, matrix_detail, char_ids_map or {}, sender_avatar)
 
         role_detail_info_map = await get_all_roleid_detail_info(uid)
         return await draw_matrix_detail_img_pil(
