@@ -20,6 +20,12 @@ if "XutheringWavesUID" not in SL.plugins:
 from .utils.download_utils import copy_build_files
 copy_build_files()
 
+# glibc malloc 调参 + 定期 malloc_trim, 缓解本地渲染 RSS 驻留 (仅 glibc/Linux, WAVES_MALLOC_TUNING=0 可关)
+try:
+    from .utils import malloc_tuning  # noqa: F401
+except Exception as _e:
+    logger.warning(f"[鸣潮·插件] malloc 调参加载失败: {_e}")
+
 # 安装 Bot 消息发送 Hook
 from .utils.bot_send_hook import install_bot_hooks
 from .utils.database.models import WavesUser
