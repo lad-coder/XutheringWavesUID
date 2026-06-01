@@ -321,7 +321,7 @@ async def _forward_upload_to_master(bot: Bot, ev: Event):
 
     images = await get_image(ev)
     if not images:
-        return await bot.send("[鸣潮] 请同时发送要上传的图片")
+        return await bot.send("[鸣潮] 请同时发送要上传的图片。注意上传的图片应可用于体力背景/面板左上的角色图。")
 
     target_type = TYPE_MAP.get(ev.regex_dict.get("type"), "card")
     type_label = CUSTOM_PATH_NAME_MAP.get(target_type, "面板") + "图"
@@ -423,7 +423,7 @@ async def _forward_upload_to_master(bot: Bot, ev: Event):
         if subs and fail == len(subs):
             return await bot.send("[鸣潮] 转发审核失败，请稍后再试或联系主人")
         tail = f"\n已剔除疑似重复: {'；'.join(block_msgs)}" if block_msgs else ""
-        await bot.send(f"[鸣潮] 上传申请已提交给主人审核，请等待处理{tail}")
+        await bot.send(f"[鸣潮] 上传申请已提交给主人审核，请等待处理{tail}。注意上传的图片应可用于体力背景/面板左上的角色图。")
     finally:
         for p in new_images:
             try:

@@ -10,6 +10,9 @@ from gsuid_core.bot import Bot
 from gsuid_core.logger import logger
 from gsuid_core.models import Event
 
+from ..utils.api.api import get_local_proxy_url
+from ..utils.api.wwapi import GET_CODE_URL
+
 sv_waves_code = SV("鸣潮兑换码")
 
 invalid_code_list = ("MINGCHAO",)
@@ -53,20 +56,45 @@ async def get_sign_func(bot: Bot, ev: Event):
 
 
 async def get_code_list():
-    try:
-        now = datetime.now()
-        time_string = f"{now.year - 1900}{now.month - 1}{now.day}{now.hour}{now.minute}"
-        now_time = int(time.time() * 1000)
-        new_url = url.format(time_string, now_time)
-        async with httpx.AsyncClient(timeout=None) as client:
+    now = datetime.now()
+    time_string = f"{now.year - 1900}{now.month - 1}{now.day}{now.hour}{now.minute}"
+    now_time = int(time.time() * 1000)
+    new_url = url.format(time_string, now_time)
+
+    async def fetch(proxy=None):
+        async with httpx.AsyncClient(proxy=proxy, timeout=None) as client:
             res = await client.get(new_url, timeout=10)
             json_data = res.text.split("=", 1)[1].strip().rstrip(";")
             logger.debug(f"[鸣潮·获取兑换码] url:{new_url}, codeList:{json_data}")
             return json.loads(json_data)
 
+    try:
+        return await fetch()
     except Exception as e:
         logger.exception("[鸣潮·获取兑换码失败] ", e)
-        return
+
+    proxy_url = get_local_proxy_url()
+    if proxy_url:
+        for attempt in range(3):
+            try:
+                return await fetch(proxy_url)
+            except Exception as e:
+                logger.warning(f"[鸣潮·获取兑换码] 代理重试失败 ({attempt + 1}/3): {e}")
+
+    try:
+        from ..wutheringwaves_config import WutheringWavesConfig
+
+        waves_token = WutheringWavesConfig.get_config("WavesToken").data
+        async with httpx.AsyncClient(timeout=None) as client:
+            res = await client.get(
+                GET_CODE_URL,
+                headers={"Authorization": f"Bearer {waves_token}"},
+                timeout=10,
+            )
+            return res.json()["data"]
+    except Exception as e:
+        logger.warning(f"[鸣潮·获取兑换码] 备用接口失败: {e}")
+    return
 
 
 def is_code_expired(label: str) -> bool:

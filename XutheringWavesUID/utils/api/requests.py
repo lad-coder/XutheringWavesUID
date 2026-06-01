@@ -784,6 +784,7 @@ class WavesApi:
     @timed_async_cache(
         86400,
         lambda x: x.success and isinstance(x.data, (dict, list)),
+        key=lambda self, token: "online_list_role",
     )
     async def get_online_list_role(self, token: str):
         """所有的角色列表"""
@@ -795,6 +796,7 @@ class WavesApi:
     @timed_async_cache(
         86400,
         lambda x: x.success and isinstance(x.data, (dict, list)),
+        key=lambda self, token: "online_list_weapon",
     )
     async def get_online_list_weapon(self, token: str):
         """所有的武器列表"""
@@ -806,6 +808,7 @@ class WavesApi:
     @timed_async_cache(
         86400,
         lambda x: x.success and isinstance(x.data, (dict, list)),
+        key=lambda self, token: "online_list_phantom",
     )
     async def get_online_list_phantom(self, token: str):
         """所有的声骸列表"""
