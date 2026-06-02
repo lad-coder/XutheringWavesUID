@@ -173,7 +173,7 @@ async def draw_gacha_rank_card(bot, ev: Event) -> Union[str, bytes]:
     except Exception:
         pass
 
-    rank_length = 20  # 显示前20条
+    rank_length = 30  # 显示前20条
     rankInfoList_display = rankInfoList_with_id[:rank_length]
     if rankId and rankInfo and rankId > rank_length:
         rankInfoList_display.append((rankId, rankInfo))

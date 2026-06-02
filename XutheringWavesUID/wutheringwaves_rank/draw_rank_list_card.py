@@ -309,7 +309,7 @@ async def draw_rank_list(bot: Bot, ev: Event, threshold: int = 175) -> Union[str
     except Exception as _:
         pass
 
-    rank_length = 20  # 显示前20条
+    rank_length = 30  # 显示前20条
     rankInfoList_display = rankInfoList[:rank_length]
     display_rank_ids = list(range(1, len(rankInfoList_display) + 1))
     if rankId and rankInfo and rankId > rank_length:

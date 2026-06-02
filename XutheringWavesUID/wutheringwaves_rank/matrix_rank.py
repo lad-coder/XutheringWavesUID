@@ -593,7 +593,7 @@ async def draw_matrix_rank_list(bot: Bot, ev: Event):
     except Exception:
         pass
 
-    rank_length = 20
+    rank_length = 30
     rankInfoList_display = rankInfoList[:rank_length]
     if rankId and rankInfo and rankId > rank_length:
         rankInfoList_display.append(rankInfo)

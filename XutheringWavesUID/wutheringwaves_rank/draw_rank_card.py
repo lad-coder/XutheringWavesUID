@@ -55,7 +55,7 @@ from ..utils.fonts.waves_fonts import (
 )
 from ..utils.resource.constant import SPECIAL_CHAR, SPECIAL_CHAR_NAME
 
-rank_length = 20  # 排行长度
+rank_length = 30  # 排行长度
 TEXT_PATH = Path(__file__).parent / "texture2d"
 TITLE_I = Image.open(TEXT_PATH / "title.png")
 TITLE_II = Image.open(TEXT_PATH / "title2.png")

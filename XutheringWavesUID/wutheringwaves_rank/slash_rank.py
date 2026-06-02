@@ -548,7 +548,7 @@ async def draw_slash_rank_list(bot: Bot, ev: Event):
     except Exception as _:
         pass
 
-    rank_length = 20  # 显示前20条
+    rank_length = 30  # 显示前20条
     rankInfoList_display = rankInfoList[:rank_length]
     if rankId and rankInfo and rankId > rank_length:
         rankInfoList_display.append(rankInfo)
