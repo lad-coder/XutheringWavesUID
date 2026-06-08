@@ -1,10 +1,8 @@
 import re
-import copy
 import json
 import math
 import time
 import asyncio
-import colorsys
 from typing import Dict, List, Tuple, Optional
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
@@ -22,22 +20,13 @@ from ..utils.util import get_version, hide_uid
 from ..utils.image import (
     RED,
     GREY,
-    AMBER,
-    WAVES_VOID,
-    SPECIAL_GOLD,
-    WAVES_MOLTEN,
-    WAVES_SIERRA,
-    WAVES_MOONLIT,
-    WAVES_FREEZING,
-    WAVES_LINGERING,
     get_ICON,
     add_footer,
     get_waves_bg,
     get_square_avatar,
     pic_download_from_url,
-    parse_bot_color_config,
 )
-from .rank_badge import draw_rank_badge
+from .rank_badge import draw_bot_name_badge, draw_rank_badge
 from .rank_avatar import get_avatar
 from ..utils.resource.RESOURCE_PATH import MATRIX_PATH
 from ..utils.api.model import MatrixDetail
@@ -69,16 +58,6 @@ from ..wutheringwaves_abyss.period import (
 TEXT_PATH = Path(__file__).parent / "texture2d"
 
 CHINA_TZ = timezone(timedelta(hours=8))
-
-BOT_COLOR = [
-    WAVES_MOLTEN,
-    AMBER,
-    WAVES_VOID,
-    WAVES_SIERRA,
-    WAVES_FREEZING,
-    WAVES_LINGERING,
-    WAVES_MOONLIT,
-]
 
 
 
@@ -209,11 +188,6 @@ async def draw_all_matrix_rank_card(bot: Bot, ev: Event):
     tasks = [get_avatar(rank.user_id, getattr(rank, "sender_avatar", "")) for rank in rank_list]
     results = await asyncio.gather(*tasks)
 
-    bot_color_map = parse_bot_color_config(
-        WutheringWavesConfig.get_config("BotColorMap").data
-    )
-    bot_color = copy.deepcopy(BOT_COLOR)
-
     for rank_temp_index, temp in enumerate(zip(rank_list, results)):
         rank_temp: MatrixRank = temp[0]
         role_avatar: Image.Image = temp[1]
@@ -242,37 +216,7 @@ async def draw_all_matrix_rank_card(bot: Bot, ev: Event):
         # bot主人名字
         botName = rank_temp.alias_name if rank_temp.alias_name else ""
         if botName:
-            color = (54, 54, 54)
-            if botName in bot_color_map:
-                color = bot_color_map[botName]
-            elif bot_color:
-                color = bot_color.pop(0)
-                bot_color_map[botName] = color
-
-            if botName != '无敌美少女':
-                info_block = Image.new("RGBA", (200, 30), color=(255, 255, 255, 0))
-                info_block_draw = ImageDraw.Draw(info_block)
-                info_block_draw.rounded_rectangle([0, 0, 200, 30], radius=6, fill=color + (int(0.6 * 255),))
-                info_block_draw.text((100, 15), f"bot: {botName}", "white", waves_font_18, "mm")
-                role_bg.alpha_composite(info_block, (330, 66))
-            else:
-                info_block = Image.new("RGBA", (200, 30), color=(255, 255, 255, 0))
-                gradient = Image.new("RGBA", (200, 30))
-                gradient_draw = ImageDraw.Draw(gradient)
-                for i in range(200):
-                    r, g, b = [int(c * 255) for c in colorsys.hsv_to_rgb(i / 200.0, 0.7, 0.9)]
-                    gradient_draw.line([(i, 0), (i, 30)], fill=(r, g, b, 255))
-                
-                mask = Image.new("L", (200, 30), 0)
-                mask_draw = ImageDraw.Draw(mask)
-                mask_draw.rounded_rectangle([0, 0, 200, 30], radius=6, fill=int(0.6 * 255))
-                gradient.putalpha(mask)
-                
-                info_block.alpha_composite(gradient, (0, 0))
-                info_block_draw = ImageDraw.Draw(info_block)
-                info_block_draw.rounded_rectangle([0, 0, 199, 29], radius=6, outline=SPECIAL_GOLD, width=2)
-                info_block_draw.text((100, 15), f"bot: {botName}", "white", waves_font_18, "mm")
-                role_bg.alpha_composite(info_block, (330, 66))
+            draw_bot_name_badge(role_bg, getattr(rank_temp, "background", ""), botName, (326, 61))
 
         # 总分数 — 左移10px (矩阵分数比海墟多一位)
         score_color = get_score_color(rank_temp.score)
@@ -593,7 +537,7 @@ async def draw_matrix_rank_list(bot: Bot, ev: Event):
     except Exception:
         pass
 
-    rank_length = 30
+    rank_length = 20
     rankInfoList_display = rankInfoList[:rank_length]
     if rankId and rankInfo and rankId > rank_length:
         rankInfoList_display.append(rankInfo)
