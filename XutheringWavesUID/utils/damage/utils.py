@@ -158,7 +158,13 @@ def skill_damage_calc(skillTree: Optional[Dict], skillTreeId: str, skillParamId:
     """
     if skillTree is None:
         raise ValueError("技能树数据不能为空")
-    return skillTree[skillTreeId]["skill"]["level"][skillParamId]["param"][0][skillLevel]
+    level = skillTree[skillTreeId]["skill"]["level"]
+    if skillParamId not in level:
+        if skillParamId.endswith("伤害"):
+            skillParamId = skillParamId[:-2]
+        else:
+            skillParamId = f"{skillParamId}伤害"
+    return level[skillParamId]["param"][0][skillLevel]
 
 
 def parse_skill_multi(temp):
