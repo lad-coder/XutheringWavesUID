@@ -259,7 +259,7 @@ async def draw_slash_img(ev: Event, uid: str, user_id: str) -> Union[bytes, str]
         img_bytes = await render_html(waves_templates, "abyss/slash_card.html", context)
         if img_bytes:
             await save_slash_record(uid, slash_detail)
-            await upload_slash_record(is_self_ck, uid, slash_detail, sender_avatar)
+            await upload_slash_record(is_self_ck, uid, slash_detail, sender_avatar, user_id, ev.bot_id)
             return img_bytes
         else:
             logger.warning("[鸣潮·冥海渲染] Playwright 返回空, 回退到 PIL")

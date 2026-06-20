@@ -334,7 +334,7 @@ async def draw_slash_img(ev: Event, uid: str, user_id: str) -> Union[bytes, str]
     card_img = add_footer(card_img, 600, 20)
     card_img = await convert_img(card_img)
     await save_slash_record(uid, slash_detail)
-    await upload_slash_record(is_self_ck, uid, slash_detail, sender_avatar)
+    await upload_slash_record(is_self_ck, uid, slash_detail, sender_avatar, user_id, ev.bot_id)
     return card_img
 
 
@@ -364,8 +364,11 @@ async def upload_slash_record(
     waves_id: str,
     slash_data: SlashDetail,
     sender_avatar: str = "",
+    user_id: str = "",
+    bot_id: str = "",
 ):
     from ..wutheringwaves_config import WutheringWavesConfig, PREFIX
+    from ..utils.util import resolve_hide_uid
 
     WavesToken = WutheringWavesConfig.get_config("WavesToken").data
     if not WavesToken:
@@ -416,6 +419,7 @@ async def upload_slash_record(
             "rank": challenge.get_rank(),
             "score": challenge.score,
             "sender_avatar": sender_avatar,
+            "hide_uid": await resolve_hide_uid(waves_id, user_id, bot_id),
         }
     )
     # logger.info(f"[鸣潮·冥海保存] 上传冥海记录: {slash_item.model_dump()}")
