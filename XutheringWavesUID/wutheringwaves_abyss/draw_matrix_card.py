@@ -160,7 +160,10 @@ async def upload_matrix_record(
     matrix_data: MatrixDetail,
     char_ids_map: dict,
     sender_avatar: str = "",
+    user_id: str = "",
+    bot_id: str = "",
 ):
+    from ..utils.util import resolve_hide_uid
     WavesToken = WutheringWavesConfig.get_config("WavesToken").data
     if not WavesToken:
         return
@@ -206,6 +209,7 @@ async def upload_matrix_record(
         teamCount=len(mode.teams),
         teams=teams,
         sender_avatar=sender_avatar,
+        hide_uid=await resolve_hide_uid(waves_id, user_id, bot_id),
     )
     push_item(QUEUE_MATRIX_RECORD, matrix_item.model_dump())
 
@@ -284,7 +288,7 @@ async def draw_matrix_img(ev: Event, uid: str, user_id: str) -> Union[bytes, str
 
     if isinstance(result, bytes):
         await save_matrix_record(uid, matrix_detail, char_ids_map)
-        await upload_matrix_record(is_self_ck, uid, matrix_detail, char_ids_map, sender_avatar)
+        await upload_matrix_record(is_self_ck, uid, matrix_detail, char_ids_map, sender_avatar, user_id, ev.bot_id)
     return result
 
 
