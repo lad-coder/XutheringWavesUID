@@ -18,6 +18,7 @@ from gsuid_core.utils.image.image_tools import crop_center_img
 
 from ..utils import hint
 from ..utils.util import hide_uid, get_hide_uid_pref
+from ..utils.imagetool import draw_base_info_bg
 from ..utils.image import (
     GOLD,
     add_footer,
@@ -112,29 +113,23 @@ async def draw_card_help():
         ]
     )
 
-    # pc = "\n".join(
-    #     [
-    #         "PC获取方式（已失效，建议使用上方两种获取方式）",
-    #         "1.打开游戏抽卡界面，点开换取记录",
-    #         "2.在鸣潮安装的目录下进入目录：`Wuthering Waves\\Wuthering Waves Game\\Client\\Saved\\Logs`",
-    #         "3.找到文件`Client.log`并用记事本打开",
-    #         "4.搜索关键字：aki-gm-resources.aki-game",
-    #         "5.复制一整行链接"
-    #     ]
-    # )
+    pc = "\n".join(
+        [
+            "PC获取方式",
+            "1.打开游戏抽卡界面，点开唤取记录后确保显示了想要导入的记录",
+            "2.下载抽卡助手：https://ww3.loping151.cn/XutheringWavesUID/resource/gacha/gacha-helper.zip",
+            "3.点击获取抽卡记录链接",
+        ]
+    )
 
-    android = "\n".join(
+    mobile = "\n".join(
         [
             "安卓手机获取链接方式",
             "1.打开游戏抽卡界面",
             "2.关闭网络或打开飞行模式",
             "3.点开换取记录",
-            "4.长按左上角区域，全选，复制"
-        ]
-    )
-
-    ios = "\n".join(
-        [
+            "4.长按左上角区域，全选，复制",
+            "",
             "苹果手机获取方式",
             "1.使用Stream抓包（详细教程网上搜索）",
             "2.关键字搜索:[game2]的请求",
@@ -153,7 +148,7 @@ async def draw_card_help():
         ]
     )
 
-    msg = [text, yun, android, ios, wechat]
+    msg = [text, yun, pc, mobile, wechat]
     return msg
 
 
@@ -835,10 +830,11 @@ async def draw_uid_avatar(uid, ev, card_img):
             return f"用户未展示数据, 请尝试【{PREFIX}登录】"
         account_info = AccountBaseInfo.model_validate(account_info.data)
 
-        base_info_bg = Image.open(TEXT_PATH / "base_info_bg.png")
-        base_info_draw = ImageDraw.Draw(base_info_bg)
-        base_info_draw.text((275, 120), f"{account_info.name[:10]}", "white", waves_font_30, "lm")
-        base_info_draw.text((226, 173), f"特征码:  {hide_uid(account_info.id, user_pref=user_pref)}", GOLD, waves_font_25, "lm")
+        base_info_bg = draw_base_info_bg(
+            f"{account_info.name[:10]}",
+            f"特征码:  {hide_uid(account_info.id, user_pref=user_pref)}",
+            TEXT_PATH,
+        )
         base_info_bg = base_info_bg.resize((900, 450))
         card_img.alpha_composite(base_info_bg, (110, 30))
         #
