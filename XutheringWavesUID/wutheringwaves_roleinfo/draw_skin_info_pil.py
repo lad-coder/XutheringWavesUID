@@ -20,6 +20,9 @@ from ..utils.imagetool import draw_pic_with_ring
 from .draw_role_info_pil import draw_identity_header
 from ..utils.fonts.waves_fonts import (
     fit_text,
+    waves_font_8,
+    waves_font_9,
+    waves_font_10,
     waves_font_12,
     waves_font_14,
     waves_font_16,
@@ -122,8 +125,8 @@ def build_motor_blocks(motor_data: MotorData):
 
     blocks = [
         {"title": "涂装", "header": "header_motor_sticker.png", "cols": 8, "wide": False, "items": items(si.stickerList)},
-        {"title": "车架", "header": "header_motor_frame.png", "cols": 2, "wide": True, "items": items(si.frameList)},
-        {"title": "外观定制", "header": "header_motor_deco.png", "cols": 8, "wide": False, "items": items(si.decorationList)},
+        {"title": "车架模组", "header": "header_motor_frame.png", "cols": 2, "wide": True, "items": items(si.frameList)},
+        {"title": "摩托饰品", "header": "header_motor_deco.png", "cols": 8, "wide": False, "items": items(si.decorationList)},
     ]
     return [b for b in blocks if b["items"]]
 
@@ -291,7 +294,8 @@ def _compose_skin_img(
         # 左上角类型图标
         type_img = item.get("type_img")
         if type_img is not None:
-            t = type_img.convert("RGBA").resize((38, 38))
+            t = type_img.convert("RGBA").resize((32, 32))
+            t.putalpha(t.getchannel("A").point(lambda a: int(a * 0.82)))
             cell.paste(t, (6, 6), t)
 
         # 品质边框
@@ -306,7 +310,7 @@ def _compose_skin_img(
             nd,
             item.get("name") or "",
             cw - 8,
-            (waves_font_18, waves_font_16, waves_font_14, waves_font_12),
+            (waves_font_18, waves_font_16, waves_font_14, waves_font_12, waves_font_10, waves_font_9, waves_font_8),
         )
         nd.text((_x + cw // 2, _y + ch + 18), nm, "white", name_font, "mm")
 
