@@ -52,6 +52,8 @@ from ..utils.damage.modal import get_modal_name, get_modal_options, get_role_mod
 from .draw_rank_card import find_role_detail
 from ..utils.ascension.weapon import get_weapon_model
 from ..utils.fonts.waves_fonts import (
+    fit_text,
+    waves_font_12,
     waves_font_14,
     waves_font_16,
     waves_font_18,
@@ -144,7 +146,7 @@ async def draw_all_rank_card(bot: Bot, ev: Event, char: str, rank_type: str, pag
 
     char_model = get_char_model(char_id)
     if not char_model:
-        return f"[鸣潮] 角色名【{char}】暂未适配！\n"
+        return f"[鸣潮] 角色名【{char_name}】暂未适配！\n"
 
     attribute_name = ATTRIBUTE_ID_MAP[char_model.attributeId]
 
@@ -168,8 +170,10 @@ async def draw_all_rank_card(bot: Bot, ev: Event, char: str, rank_type: str, pag
                 waves_ids=[str(u) for u in group_uids if u],
             )
         )
-        if not resp or not resp.data:
+        if not resp:
             return "获取群排行失败"
+        if not resp.data or not resp.data.details:
+            return "暂无排行数据"
         details = [d for d in resp.data.details if d.overall_score > 0]
         if not details:
             return "[鸣潮] 群内暂无该角色综合评分数据\n需【登录】并【刷新单角色面板】上传后才会上榜"
@@ -201,8 +205,8 @@ async def draw_all_rank_card(bot: Bot, ev: Event, char: str, rank_type: str, pag
             return "获取排行失败"
         if rankInfoList.message and not rankInfoList.data:
             return rankInfoList.message
-        if not rankInfoList.data:
-            return "获取排行失败"
+        if not rankInfoList.data or not rankInfoList.data.details:
+            return "暂无排行数据"
         details = rankInfoList.data.details
 
     totalNum = len([rank for rank in details if rank.rank > 0])
@@ -370,7 +374,13 @@ async def draw_all_rank_card(bot: Bot, ev: Event, char: str, rank_type: str, pag
         draw_rank_badge(bar_bg, rank_id)
 
         # 名字
-        bar_star_draw.text((210, 75), f"{rank.kuro_name}", "white", waves_font_20, "lm")
+        name_font, name_text = fit_text(
+            bar_star_draw,
+            str(rank.kuro_name),
+            130,
+            (waves_font_20, waves_font_18, waves_font_16, waves_font_14, waves_font_12),
+        )
+        bar_star_draw.text((210, 75), name_text, "white", name_font, "lm")
 
         # uid
         uid_color = "white"

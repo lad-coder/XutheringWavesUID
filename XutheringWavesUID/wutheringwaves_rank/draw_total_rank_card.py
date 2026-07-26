@@ -34,7 +34,9 @@ from ..utils.database.models import WavesBind
 from ..wutheringwaves_config import WutheringWavesConfig
 from ..utils.resource.constant import randomize_special_char_id
 from ..utils.fonts.waves_fonts import (
+    fit_text,
     waves_font_12,
+    waves_font_14,
     waves_font_16,
     waves_font_18,
     waves_font_20,
@@ -92,8 +94,8 @@ async def draw_total_rank(bot: Bot, ev: Event, pages: int) -> Union[str, bytes]:
     if rankInfoList.message and not rankInfoList.data:
         return rankInfoList.message
 
-    if not rankInfoList.data:
-        return "获取练度总排行失败"
+    if not rankInfoList.data or not rankInfoList.data.rank_list:
+        return "暂无排行数据"
 
     # 设置图像尺寸
     width = 1300
@@ -177,7 +179,13 @@ def _compose_total_rank(card_img, bar, details, results, char_avatar_map,
         rank_id = detail.rank
         draw_rank_badge(bar_bg, rank_id)
 
-        bar_draw.text((210, 75), f"{detail.kuro_name}", "white", waves_font_20, "lm")
+        name_font, name_text = fit_text(
+            bar_draw,
+            str(detail.kuro_name),
+            130,
+            (waves_font_20, waves_font_18, waves_font_16, waves_font_14, waves_font_12),
+        )
+        bar_draw.text((210, 75), name_text, "white", name_font, "lm")
 
         char_count = len(detail.char_score_details) if detail.char_score_details else 0
         bar_draw.text((210, 45), "角色数:", (255, 255, 255), waves_font_18, "lm")
