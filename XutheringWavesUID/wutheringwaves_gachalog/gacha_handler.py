@@ -352,7 +352,13 @@ def _merge_external_five_stars(
                     f"本地卡池[{pool_id}]锚点前已有{len(known_before_anchor)}抽，"
                     f"超过{source}记录的{expected_before_anchor}抽"
                 )
-            filler_time = get_filler_time(oldest_local["time"], previous_time)
+            filler_anchor_time = (
+                known_before_anchor[0]["time"]
+                if known_before_anchor
+                else oldest_local["time"]
+            )
+            # 缺失抽位于已有真实抽之前，合成时间也必须早于最老的已知记录。
+            filler_time = get_filler_time(filler_anchor_time, previous_time)
             for _ in range(missing):
                 filler = FILLER_ITEM.copy()
                 filler["cardPoolType"] = pool_id
@@ -472,6 +478,8 @@ XHH_POOL_MAP = {
     "联动角色池": "10",
     "联动武器池": "11",
 }
+# 小黑盒用 int64 上限标记“至今”垫抽汇总，它不是五星记录。
+XHH_CURRENT_PITY_IDX = 2**63 - 1
 
 _XHH_NAME_TO_ID: dict = {}
 
@@ -702,6 +710,11 @@ def merge_xhh_data(original_data: dict, xhh_data: dict) -> dict:
                 raise GachaMergeError(f"小黑盒卡池[{pool_type}]五星记录格式异常")
             name = str(rec.get("name") or "")
             if not name:
+                if rec.get("idx") in (
+                    XHH_CURRENT_PITY_IDX,
+                    str(XHH_CURRENT_PITY_IDX),
+                ):
+                    continue
                 raise GachaMergeError(f"小黑盒卡池[{pool_type}]五星记录缺少名称")
             time_str = _xhh_ts_to_str(rec.get("timestamp"), name)
             rid = _XHH_NAME_TO_ID.get(name)

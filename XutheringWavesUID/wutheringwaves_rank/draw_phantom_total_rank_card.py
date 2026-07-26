@@ -157,6 +157,7 @@ PHANTOM_THUMB_X = (
     + _BOT_BADGE_SIZE[0]
     + _BOT_THUMB_GAP
 )
+_USER_NAME_MAX_WIDTH = PHANTOM_THUMB_X - USER_INFO_X - _BOT_THUMB_GAP
 _PHANTOM_ICON_Y = FRAME_TOP + (_FRAME_H - _PHANTOM_ICON_SIZE[1]) // 2
 _FETTER_ICON_POS = (
     PHANTOM_THUMB_X + 58,
@@ -488,7 +489,7 @@ async def _safe_fetter_icon(set_name: str) -> Optional[Image.Image]:
 async def draw_phantom_total_rank(bot: Bot, ev: Event, char: str, pages: int) -> Union[str, bytes]:
     char_id = char_name_to_char_id(char)
     if not char_id:
-        return f"未找到角色[{char}]"
+        return "未找到指定角色, 请检查输入是否正确！"
     char = char_id_to_char_name(char_id) or char
     self_uid = await WavesBind.get_uid_by_game(ev.user_id, ev.bot_id)
     if not self_uid:
@@ -506,8 +507,8 @@ async def draw_phantom_total_rank(bot: Bot, ev: Event, char: str, pages: int) ->
         return "获取声骸总排行失败"
     if rankInfoList.message and not rankInfoList.data:
         return rankInfoList.message
-    if not rankInfoList.data:
-        return "获取声骸总排行失败"
+    if not rankInfoList.data or not rankInfoList.data.rank_list:
+        return "暂无排行数据"
 
     ranking = rankInfoList.data.rank_list
     details = list(ranking)
@@ -635,11 +636,17 @@ def _compose_rows(card_img, bar, details, avatars, phantom_icons, fetter_icons, 
         draw_rank_and_avatar(bar_bg, detail.rank, role_avatar)
 
         # 库洛名 / 特征码 / bot主人徽章
+        name_font, name_text = fit_text(
+            draw,
+            str(detail.kuro_name),
+            _USER_NAME_MAX_WIDTH,
+            (waves_font_22, waves_font_20, waves_font_18, waves_font_16, waves_font_14),
+        )
         draw.text(
             (USER_INFO_X, _USER_NAME_Y),
-            f"{detail.kuro_name}",
+            name_text,
             "white",
-            waves_font_22,
+            name_font,
             "lm",
         )
         uid_color = RED if detail.waves_id == self_uid else "white"
