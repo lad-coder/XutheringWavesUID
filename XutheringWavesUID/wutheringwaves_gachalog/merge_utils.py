@@ -2,6 +2,8 @@ from typing import Any
 from dataclasses import dataclass
 from collections.abc import Mapping, Sequence, MutableMapping
 
+from gsuid_core.logger import logger
+
 GACHA_HARD_PITY = 80
 GACHA_PITY_RESET_FIELD = "historyGapBefore"
 
@@ -46,14 +48,21 @@ def clear_history_gap_before(item: Any) -> None:
 
 
 def validate_draw_total(value: Any, source: str, pool: str, name: str) -> int:
+    """外部源自报抽数超过硬保底时按硬保底截断，不阻断合并。"""
     if isinstance(value, bool):
         raise GachaMergeError(f"{source}卡池[{pool}]五星[{name}]的抽数格式异常")
     try:
         draw_total = int(value)
     except (TypeError, ValueError) as exc:
         raise GachaMergeError(f"{source}卡池[{pool}]五星[{name}]的抽数格式异常") from exc
-    if draw_total < 1 or draw_total > GACHA_HARD_PITY:
-        raise GachaMergeError(f"{source}卡池[{pool}]五星[{name}]抽数为{draw_total}，超出1~{GACHA_HARD_PITY}")
+    if draw_total < 1:
+        raise GachaMergeError(f"{source}卡池[{pool}]五星[{name}]抽数为{draw_total}，不足1抽")
+    if draw_total > GACHA_HARD_PITY:
+        logger.warning(
+            f"[鸣潮·抽卡合并] {source}卡池[{pool}]五星[{name}]抽数{draw_total}"
+            f"超过硬保底，按{GACHA_HARD_PITY}抽计入"
+        )
+        return GACHA_HARD_PITY
     return draw_total
 
 
@@ -107,16 +116,34 @@ def find_gacha_pity_violations(
     return violations
 
 
+def _violation_detail(violation: GachaPityViolation) -> str:
+    if violation.kind == "remain":
+        return f"当前连续垫抽为{violation.pity}"
+    return f"五星[{violation.name}]被计算为{violation.pity}抽"
+
+
 def assert_valid_gacha_pity(pools: Mapping[str, Sequence[Any]]) -> None:
     violations = find_gacha_pity_violations(pools)
     if not violations:
         return
     first = violations[0]
-    if first.kind == "remain":
-        detail = f"当前连续垫抽为{first.pity}"
-    else:
-        detail = f"五星[{first.name}]被计算为{first.pity}抽"
-    raise GachaMergeError(f"卡池[{first.pool}]{detail}，已超过{GACHA_HARD_PITY}抽限制")
+    raise GachaMergeError(
+        f"卡池[{first.pool}]{_violation_detail(first)}，已超过{GACHA_HARD_PITY}抽限制"
+    )
+
+
+def warn_gacha_pity_violations(
+    pools: Mapping[str, Sequence[Any]], source: str = ""
+) -> list[GachaPityViolation]:
+    """超过硬保底只告警、不阻断：重叠段因历史断开而跨段计数时，真实抽数已不可还原，
+    拒绝合并只会让用户永远导不进来。记录原样写入，统计侧自行判断。"""
+    violations = find_gacha_pity_violations(pools)
+    for violation in violations:
+        logger.warning(
+            f"[鸣潮·抽卡] {source}卡池[{violation.pool}]{_violation_detail(violation)}，"
+            f"超过{GACHA_HARD_PITY}抽硬保底，按历史缺失处理并照常写入"
+        )
+    return violations
 
 
 def group_flat_gacha_logs(logs: Sequence[Any]) -> dict[str, list[Any]]:
