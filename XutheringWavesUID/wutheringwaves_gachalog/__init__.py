@@ -59,6 +59,7 @@ ERROR_MSG_IMPORT_TYPE = (
     "请将【+uid】替换为对应的9位数字UID，或将【+小黑盒ID】替换为对应的小黑盒ID"
 )
 IMPORT_UID_RE = re.compile(r"^\s*\+?\s*(\d{9})\s*$")
+GACHA_LINK_HINT_RE = re.compile(r"record_?[Ii]d[=:]([a-zA-Z0-9]{32})")
 
 
 def _migrate_legacy_gacha_backups():
@@ -211,6 +212,8 @@ async def _merge_mcgf_gacha(bot: Bot, ev: Event, uid: str, target_uid: str):
 
 @sv_get_gachalog_by_link.on_command("导入抽卡记录", block=True)
 async def send_gacha_import_type(bot: Bot, ev: Event):
+    if GACHA_LINK_HINT_RE.search(re.sub(r'["\n\t ]+', "", ev.text)):
+        return await get_gacha_log_by_link(bot, ev)
     return await bot.send(ERROR_MSG_IMPORT_TYPE)
 
 
@@ -219,6 +222,8 @@ async def get_gacha_log_by_mcgf(bot: Bot, ev: Event):
     uid = await WavesBind.get_uid_by_game(ev.user_id, ev.bot_id)
     if not uid:
         return await bot.send(ERROR_CODE[WAVES_CODE_103])
+
+    await WavesBind.insert_waves_uid(ev.user_id, ev.bot_id, uid, ev.group_id, lenth_limit=9)
 
     target_uid = _parse_import_uid(ev.text)
     if not target_uid:
@@ -241,6 +246,8 @@ async def get_gacha_log_by_link(bot: Bot, ev: Event):
     uid = await WavesBind.get_uid_by_game(ev.user_id, ev.bot_id)
     if not uid:
         return await bot.send(ERROR_CODE[WAVES_CODE_103])
+
+    await WavesBind.insert_waves_uid(ev.user_id, ev.bot_id, uid, ev.group_id, lenth_limit=9)
 
     user_pref = await get_hide_uid_pref(uid, ev.user_id, ev.bot_id)
 
@@ -302,6 +309,8 @@ async def get_gacha_log_by_xhh(bot: Bot, ev: Event):
     uid = await WavesBind.get_uid_by_game(ev.user_id, ev.bot_id)
     if not uid:
         return await bot.send(ERROR_CODE[WAVES_CODE_103])
+
+    await WavesBind.insert_waves_uid(ev.user_id, ev.bot_id, uid, ev.group_id, lenth_limit=9)
 
     heybox_id = ev.text.strip()
     if not heybox_id:
@@ -392,6 +401,8 @@ async def update_gacha_log_by_cloud(bot: Bot, ev: Event):
     if not uid:
         return await bot.send(ERROR_CODE[WAVES_CODE_103])
 
+    await WavesBind.insert_waves_uid(ev.user_id, ev.bot_id, uid, ev.group_id, lenth_limit=9)
+
     user_pref = await get_hide_uid_pref(uid, ev.user_id, ev.bot_id)
 
     record = await WavesGachaCloud.select_record(ev.user_id, ev.bot_id, uid)
@@ -468,6 +479,8 @@ async def get_gacha_log_by_file(bot: Bot, ev: Event):
     if not ck:
         await bot.logger.info(f"[鸣潮·JSON导入抽卡] 用户 {ev.user_id} (UID:{uid}) 未登录或Cookie失效，忽略此次导入。这是为了避免被别人绑定uid后上传json覆盖真实玩家的抽卡数据")
         return
+
+    await WavesBind.insert_waves_uid(ev.user_id, ev.bot_id, uid, ev.group_id, lenth_limit=9)
 
     lock_key = _gacha_import_lock_key(uid)
     if not gacha_import_lock.acquire(lock_key):
