@@ -33,7 +33,7 @@ git clone https://github.com/Loping151/XutheringWavesUID.git
 群友的拓展教程：
 https://blog.ovoii.io/posts/notes/wwbot 
 
-总排行申请、反馈（仅限主人）：群号 885617919（主群封禁中，备用群 387393347）（入群问题注意大小写）。如**完全**不使用QQ平台（如飞书、Discord等），可发邮件给客服小维 agent@loping151.com（记得写标题避免被小维当成垃圾邮件）申请计算token，要求附带具体使用平台、core信息截图和使用情况和规模说明，支持较少的请求量和用户量，但完全足以小范围使用，一般都欢迎入群。
+总排行申请、反馈（仅限主人）：群号 1104111054（由于不可抗力，可能经常更换）（入群问题不带文件拓展名）。如**完全**不使用QQ平台（如飞书、Discord等），可发邮件给客服小维 agent@loping151.com（记得写标题避免被小维当成垃圾邮件）申请计算token，要求附带具体使用平台、core信息截图和使用情况和规模说明，支持较少的请求量和用户量，但完全足以小范围使用，一般都欢迎入群。
 
 - 为什么需要申请总排行进行使用：
   
@@ -60,6 +60,8 @@ https://blog.ovoii.io/posts/notes/wwbot
 分析评分功能：[ScoreEcho](https://github.com/Loping151/ScoreEcho)
 
 体力推送功能：[RoverReminder](https://github.com/Loping151/RoverReminder)
+
+dsh 移植版：[dsh-plugin-waves](https://github.com/Loping151/dsh-plugin-waves)
 
 ### 其他工具
 
@@ -144,4 +146,4 @@ android_termux: python3.10-3.14<br>
   - [巡游天国FM](https://space.bilibili.com/444694026)
  
   
-<img src="./assets/footer.png" alt="footer" width="1000" />
+<img src="https://prod-alicdn-community.kurobbs.com/forum/575e17ca95e74a77b37804b75d9d2c3d20260814.png" alt="footer" width="1000" />
